@@ -16,4 +16,4 @@ steps:
     - '-d'
     - '-r'
     - 'plugins'
-    - 'gs://us-central1-composer-ingeni-5468dd3d-bucket/pluginss'
+    - 'gs://us-central1-composer-ingeni-5468dd3d-bucket/plugins'
