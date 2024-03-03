@@ -37,6 +37,7 @@ def process_and_load_data(**kwargs):
 
     # Lee el archivo CSV en un DataFrame de pandas
     df = pd.read_csv(csv_path)
+    print('Arhivo reconocido')
 
     # Aquí puedes realizar las transformaciones necesarias en el DataFrame
     # Por ejemplo: df = df.transform(...)
@@ -53,8 +54,12 @@ def process_and_load_data(**kwargs):
     table_id = 'ferreyros-mvp.raw_st.pre_smarty'
 
     # Carga los datos en BigQuery
-    job = client.load_table_from_dataframe(df, table_id)
-    job.result()  # Espera a que la carga se complete
+    df.to_gbq(project_id = 'ferreyros-mvp',
+                    destination_table = 'raw_st.pre_smarty',
+                   credentials=credentials,
+                    #table_schema = generated_schema,
+                    progress_bar = True,
+                    if_exists = 'replace')
 
 
 
