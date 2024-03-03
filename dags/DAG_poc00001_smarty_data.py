@@ -67,7 +67,7 @@ default_args = {
     'email_on_retry': True,
     'retries': 1,  # Retry once before failing the task.
     'retry_delay': datetime.timedelta(minutes=1),  # Time between retries
-    'project_id': ferreyros-mvp,  # Cloud Composer project ID.
+    'project_id': project,  # Cloud Composer project ID
 }
 
 with DAG(nameDAG,
