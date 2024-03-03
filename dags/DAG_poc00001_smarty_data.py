@@ -25,7 +25,7 @@ GBQ_CONNECTION_ID = 'bigquery_default'
 
 def process_and_load_data(**kwargs):
     # Configura el path donde tu archivo CSV será almacenado
-    folder_path = '/content/gdrive/My Drive/CIT - CENTRAL DE INFORMACIÓN TÉCNICA/LANZAMIENTO SMARTY/SMARTY DATA
+    folder_path = '/content/gdrive/My Drive/CIT - CENTRAL DE INFORMACIÓN TÉCNICA/LANZAMIENTO SMARTY/SMARTY DATA'
     csv_file = [f for f in os.listdir(folder_path) if 'KIT_CONTENIDO' in f and f.endswith('.csv')]
 
     if not csv_file:
