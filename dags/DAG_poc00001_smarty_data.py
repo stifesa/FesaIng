@@ -11,6 +11,7 @@ from google.oauth2 import service_account
 import json
 import io
 import datetime
+import pandas_gbq
 import numpy as np
 
 
