@@ -28,27 +28,31 @@ def process_and_load_data(**kwargs):
     # Configura el path donde tu archivo CSV será almacenado
     folder_path = '/content/gdrive/My Drive/CIT - CENTRAL DE INFORMACIÓN TÉCNICA/LANZAMIENTO SMARTY/SMARTY DATA'
     csv_file = [f for f in os.listdir(folder_path) if 'KIT_CONTENIDO' in f and f.endswith('.csv')]
+    for file in csv_file:
+    print(file)
 
     if not csv_file:
         raise FileNotFoundError("No se encontró el archivo CSV con el patrón 'KIT_CONTENIDO' en su nombre.")
     
     # Asume que solo hay un archivo que coincide
-    csv_path = os.path.join(folder_path, csv_file[0])
+    if csv_file:
+        csv_file = csv_file[0]
+        file_path = os.path.join(folder_path, csv_file)
+        df = pd.read_csv(file_path)
+    else:
+        print("No se encontró un archivo CSV con 'INFORME' en el nombre.")
 
-    # Lee el archivo CSV en un DataFrame de pandas
-    df = pd.read_csv(csv_path)
-    print('Arhivo reconocido')
 
     # Aquí puedes realizar las transformaciones necesarias en el DataFrame
     # Por ejemplo: df = df.transform(...)
 
     # Autenticación con Google Cloud BigQuery
+    PATH_TO_CREDENTIAL_ST = '/content/gdrive/My Drive/Proyectos/Credencial/ferreyros-mvp-3cf04ce5fdcc.json'
     credentials = service_account.Credentials.from_service_account_file(
-        '/content/gdrive/My Drive/Proyectos/Credencial/ferreyros-mvp-3cf04ce5fdcc.json'
-    )
+        PATH_TO_CREDENTIAL_ST, scopes=["https://www.googleapis.com/auth/cloud-platform"],)
 
     # Cliente de BigQuery
-    client = bigquery.Client(credentials=credentials, project=credentials.project_id)
+    #client = bigquery.Client(credentials=credentials, project=credentials.project_id)
 
     # Nombre de la tabla en BigQuery donde se cargarán los datos
     table_id = 'ferreyros-mvp.raw_st.pre_smarty'
