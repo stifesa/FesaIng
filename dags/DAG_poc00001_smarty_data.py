@@ -29,7 +29,7 @@ def process_and_load_data(**kwargs):
     folder_path = '/content/gdrive/My Drive/CIT - CENTRAL DE INFORMACIÓN TÉCNICA/LANZAMIENTO SMARTY/SMARTY DATA'
     csv_file = [f for f in os.listdir(folder_path) if 'KIT_CONTENIDO' in f and f.endswith('.csv')]
     for file in csv_file:
-    print(file)
+        print(file)
 
     if not csv_file:
         raise FileNotFoundError("No se encontró el archivo CSV con el patrón 'KIT_CONTENIDO' en su nombre.")
