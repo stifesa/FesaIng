@@ -79,7 +79,7 @@ with DAG(nameDAG,
          default_args = default_args,
          catchup = False,  # Ver caso catchup = True
          max_active_runs = 3,
-         schedule_interval = "30 1/6 * * *") as dag: # schedule_interval = None # Caso sin trigger automático | schedule_interval = "0 12 * * *" | "0,2 12 * * *"
+         schedule_interval = "30 * * * *") as dag: # schedule_interval = None # Caso sin trigger automático | schedule_interval = "0 12 * * *" | "0,2 12 * * *"
 
     # FUENTE: CRONTRAB: https://crontab.guru/
     #############################################################
@@ -88,11 +88,7 @@ with DAG(nameDAG,
     
     task_python = PythonOperator(task_id='task_python',
                                  provide_context=True,
-                                 python_callable=process_and_load_data,
-                                 op_kwargs={
-                                    'numeric_input': np.pi,
-                                    'var1': "Variable1"
-                                    }
+                                 python_callable=process_and_load_data
                                  )
 
     t_end = DummyOperator(task_id="end")
