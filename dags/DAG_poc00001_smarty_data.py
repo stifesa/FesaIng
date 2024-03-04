@@ -46,7 +46,7 @@ def process_and_load_data(**kwargs):
     service = build('drive', 'v3', credentials=credentials)
 
      # ID de la carpeta específica en Google Drive
-    folder_id = '1GQY6C0XVN644MkDHEsu4jrITt2HisO5w'
+    folder_id = '1afXts2VK7QP9kuw4S66-WFnWJHXegcs8'
 
     # Query para buscar archivos CSV dentro de la carpeta especificada
     query = f"'{folder_id}' in parents and name contains 'KIT_CONTENIDO' and mimeType='text/csv' and trashed=false"
