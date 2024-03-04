@@ -39,7 +39,8 @@ def process_and_load_data(**kwargs):
     print(service_account_content)
     # Carga las credenciales de la cuenta de servicio
     credentials = service_account.Credentials.from_service_account_info(
-        json.loads(service_account_content.decode('utf-8'))
+        json.loads(service_account_content.decode('utf-8')),
+        scopes=['https://www.googleapis.com/auth/drive.readonly']
     )
 
     # Construye el servicio de Google Drive
