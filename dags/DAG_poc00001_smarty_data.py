@@ -6,7 +6,9 @@ from airflow.operators.python_operator import PythonOperator
 from datetime import datetime, timedelta
 import pandas as pd
 from google.cloud import bigquery
+from google.cloud import storage
 from googleapiclient.discovery import build
+from googleapiclient.http import MediaIoBaseDownload
 from google.oauth2 import service_account
 import json
 import os
@@ -28,47 +30,55 @@ GBQ_CONNECTION_ID = 'bigquery_default'
 
 def process_and_load_data(**kwargs):
     # Configura el path donde tu archivo CSV será almacenado
-    folder_path = '/content/gdrive/My Drive/CIT - CENTRAL DE INFORMACIÓN TÉCNICA/LANZAMIENTO SMARTY/SMARTY DATA'
-    csv_file = [f for f in os.listdir(folder_path) if 'KIT_CONTENIDO' in f and f.endswith('.csv')]
-    for file in csv_file:
-        print(file)
+    service_account_path = 'gs://st_raw/crdfesa/ferreyros-mvp-3cf04ce5fdcc.json'
+    storage_client = storage.Client()
+    bucket_name, blob_name = service_account_path.replace('gs://', '').split('/', 1)
+    bucket = storage_client.bucket(bucket_name)
+    blob = bucket.blob(blob_name)
+    service_account_content = blob.download_as_bytes()
 
-    if not csv_file:
-        raise FileNotFoundError("No se encontró el archivo CSV con el patrón 'KIT_CONTENIDO' en su nombre.")
-    
-    # Asume que solo hay un archivo que coincide
-    if csv_file:
-        csv_file = csv_file[0]
-        file_path = os.path.join(folder_path, csv_file)
-        df = pd.read_csv(file_path)
+    # Carga las credenciales de la cuenta de servicio
+    credentials = service_account.Credentials.from_service_account_info(
+        service_account_info=json.loads(service_account_content)
+    )
+
+    # Construye el servicio de Google Drive
+    service = build('drive', 'v3', credentials=credentials)
+
+     # ID de la carpeta específica en Google Drive
+    folder_id = '1GQY6C0XVN644MkDHEsu4jrITt2HisO5w'
+
+    # Query para buscar archivos CSV dentro de la carpeta especificada
+    query = f"'{folder_id}' in parents and name contains 'KIT_CONTENIDO' and mimeType='text/csv' and trashed=false"
+
+    # Realiza la búsqueda en Google Drive
+    results = service.files().list(q=query, fields="files(id, name)").execute()
+    items = results.get('files', [])
+
+    if not items:
+        print('No files found.')
     else:
-        print("No se encontró un archivo CSV con 'INFORME' en el nombre.")
-
+        for item in items:
+            print(u'Found file: {0} ({1})'.format(item['name'], item['id']))
+            request = service.files().get_media(fileId=item['id'])
+            fh = io.BytesIO()
+            downloader = MediaIoBaseDownload(fh, request)
+            done = False
+            while not done:
+                status, done = downloader.next_chunk()
+                print("Download %d%%." % int(status.progress() * 100))
+            # Subir el archivo a Google Cloud Storage
+            gcs_bucket_name = 'st_raw'
+            gcs_blob_name = 'st_raw/smarty_data' + item['name']
+            gcs_bucket = storage_client.bucket(gcs_bucket_name)
+            gcs_blob = gcs_bucket.blob(gcs_blob_name)
+            gcs_blob.upload_from_string(fh.getvalue(), content_type='text/csv')
+            print(f"Archivo {item['name']} subido a GCS en {gcs_blob_name}.")
 
     # Aquí puedes realizar las transformaciones necesarias en el DataFrame
     # Por ejemplo: df = df.transform(...)
 
-    # Autenticación con Google Cloud BigQuery
-    PATH_TO_CREDENTIAL_ST = '/content/gdrive/My Drive/Proyectos/Credencial/ferreyros-mvp-3cf04ce5fdcc.json'
-    credentials = service_account.Credentials.from_service_account_file(
-        PATH_TO_CREDENTIAL_ST, scopes=["https://www.googleapis.com/auth/cloud-platform"],)
-
-    # Cliente de BigQuery
-    #client = bigquery.Client(credentials=credentials, project=credentials.project_id)
-
-    # Nombre de la tabla en BigQuery donde se cargarán los datos
-    table_id = 'ferreyros-mvp.raw_st.pre_smarty'
-
-    # Carga los datos en BigQuery
-    df.to_gbq(project_id = 'ferreyros-mvp',
-                    destination_table = 'raw_st.pre_smarty',
-                   credentials=credentials,
-                    #table_schema = generated_schema,
-                    progress_bar = True,
-                    if_exists = 'replace')
-
-
-
+    
 default_args = {
     'owner': owner,                   # The owner of the task.
     'depends_on_past': False,         # Task instance should not rely on the previous task's schedule to succeed.
