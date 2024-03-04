@@ -21,7 +21,7 @@ import numpy as np
 #######################################################################################
 # PARAMETROS
 #######################################################################################
-nameDAG           = 'DAG_poc00001_smarty_data'
+nameDAG           = 'process_and_load_data'
 project           = 'ferreyros-mvp'
 owner             = 'ALNETAHU'
 email             = ['astroboticapps@gmail.com']
@@ -36,10 +36,10 @@ def process_and_load_data(**kwargs):
     bucket = storage_client.bucket(bucket_name)
     blob = bucket.blob(blob_name)
     service_account_content = blob.download_as_bytes()
-
+    print(service_account_content)
     # Carga las credenciales de la cuenta de servicio
     credentials = service_account.Credentials.from_service_account_info(
-        service_account_info=json.loads(service_account_content)
+        json.loads(service_account_content.decode('utf-8'))
     )
 
     # Construye el servicio de Google Drive
