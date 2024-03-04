@@ -69,12 +69,13 @@ def process_and_load_data(**kwargs):
                 status, done = downloader.next_chunk()
                 print("Download %d%%." % int(status.progress() * 100))
             # Subir el archivo a Google Cloud Storage
+            nuevo_nombre = 'kit_contenido.csv'
             gcs_bucket_name = 'st_raw'
-            gcs_blob_name = 'st_raw/smarty_data' + item['name']
+            gcs_blob_name = 'st_raw/smarty_data' + nuevo_nombre
             gcs_bucket = storage_client.bucket(gcs_bucket_name)
             gcs_blob = gcs_bucket.blob(gcs_blob_name)
             gcs_blob.upload_from_string(fh.getvalue(), content_type='text/csv')
-            print(f"Archivo {item['name']} subido a GCS en {gcs_blob_name}.")
+            print(f"Archivo {nuevo_nombre} subido a GCS en {gcs_blob_name}.")
 
     # Aquí puedes realizar las transformaciones necesarias en el DataFrame
     # Por ejemplo: df = df.transform(...)
