@@ -95,7 +95,7 @@ def load_csv_to_bigquery(**kwargs):
     tabla0001 = 'pre_contenido'
     
     # Carga las credenciales y crea un cliente de BigQuery
-    credentials = service_account.Credentials.from_service_account_file(service_account_path)
+    credentials = service_account.Credentials.from_service_account_file(service_account_path.replace('gs://', '').split('/', 1))
     client = bigquery.Client(credentials=credentials, project=project)
 
     # Lee el archivo CSV en un DataFrame de pandas
