@@ -84,10 +84,8 @@ def load_csv_to_bigquery(**kwargs):
     
     # Crea un cliente de GCS
     client = storage.Client()
-    bucket = client.get_bucket('st_raw')
 
     # Define el nombre del archivo en GCS y el path local para guardar el archivo
-    blob_name = 'st_raw/smarty_kit_contenido.csv'
     CSV_PATH = f'gs://{bucket}/{blob_name}'
     
     # Información de BigQuery
@@ -95,8 +93,16 @@ def load_csv_to_bigquery(**kwargs):
     tabla0001 = 'pre_contenido'
     
     # Carga las credenciales y crea un cliente de BigQuery
-    credentials = service_account.Credentials.from_service_account_file(service_account_path.replace('gs://', '').split('/', 1))
-    client = bigquery.Client(credentials=credentials, project=project)
+    bucket_name, blob_name = service_account_path.replace('gs://', '').split('/', 1)
+    bucket = client.bucket(bucket_name)
+    blob = bucket.blob(blob_name)
+    service_account_content = blob.download_as_bytes()
+    print(service_account_content)
+    # Carga las credenciales de la cuenta de servicio
+    credentials = service_account.Credentials.from_service_account_info(
+        json.loads(service_account_content.decode('utf-8')),
+        scopes=['https://www.googleapis.com/auth/drive.readonly']
+    )
 
     # Lee el archivo CSV en un DataFrame de pandas
     pre_contenido = pd.read_csv(CSV_PATH)
