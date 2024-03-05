@@ -21,16 +21,16 @@ import numpy as np
 #######################################################################################
 # PARAMETROS
 #######################################################################################
-nameDAG           = 'process_and_load_data'
+nameDAG           = 'Carga_Smarty_Data'
 project           = 'ferreyros-mvp'
 owner             = 'ALNETAHU'
 email             = ['astroboticapps@gmail.com']
 GBQ_CONNECTION_ID = 'bigquery_default'
+service_account_path = 'gs://st_raw/crdfesa/ferreyros-mvp-3cf04ce5fdcc.json'
 #######################################################################################
 
 def process_and_load_data(**kwargs):
     # Configura el path donde tu archivo CSV será almacenado
-    service_account_path = 'gs://st_raw/crdfesa/ferreyros-mvp-3cf04ce5fdcc.json'
     storage_client = storage.Client()
     bucket_name, blob_name = service_account_path.replace('gs://', '').split('/', 1)
     bucket = storage_client.bucket(bucket_name)
@@ -71,7 +71,7 @@ def process_and_load_data(**kwargs):
             # Subir el archivo a Google Cloud Storage
             nuevo_nombre = 'kit_contenido.csv'
             gcs_bucket_name = 'st_raw'
-            gcs_blob_name = 'st_raw/smarty_data' + nuevo_nombre
+            gcs_blob_name = 'st_raw/smarty_' + nuevo_nombre
             gcs_bucket = storage_client.bucket(gcs_bucket_name)
             gcs_blob = gcs_bucket.blob(gcs_blob_name)
             gcs_blob.upload_from_string(fh.getvalue(), content_type='text/csv')
@@ -80,6 +80,34 @@ def process_and_load_data(**kwargs):
     # Aquí puedes realizar las transformaciones necesarias en el DataFrame
     # Por ejemplo: df = df.transform(...)
 
+def load_csv_to_bigquery(**kwargs):
+    
+    # Crea un cliente de GCS
+    client = storage.Client()
+    bucket = client.get_bucket('st_raw')
+
+    # Define el nombre del archivo en GCS y el path local para guardar el archivo
+    blob_name = 'st_raw/smarty_kit_contenido.csv'
+    CSV_PATH = f'gs://{bucket}/{blob_name}'
+    
+    # Información de BigQuery
+    dataset = 'raw_st'
+    tabla0001 = 'pre_contenido'
+    
+    # Carga las credenciales y crea un cliente de BigQuery
+    credentials = service_account.Credentials.from_service_account_file(service_account_path)
+    client = bigquery.Client(credentials=credentials, project=project)
+
+    # Lee el archivo CSV en un DataFrame de pandas
+    pre_contenido = pd.read_csv(CSV_PATH)
+    
+    # Carga el DataFrame en BigQuery, reemplazando la tabla si ya existe
+    pre_contenido.to_gbq(project_id = project,
+                    destination_table = 'raw_st.pre_contenido',
+                   credentials=credentials,
+                    #table_schema = generated_schema,
+                    progress_bar = True,
+                    if_exists = 'replace')
     
 default_args = {
     'owner': owner,                   # The owner of the task.
@@ -97,7 +125,7 @@ with DAG(nameDAG,
          default_args = default_args,
          catchup = False,  # Ver caso catchup = True
          max_active_runs = 3,
-         schedule_interval = "30 1/6 * * *") as dag: # schedule_interval = None # Caso sin trigger automático | schedule_interval = "0 12 * * *" | "0,2 12 * * *"
+         schedule_interval = "* 1/12 * * *") as dag: # schedule_interval = None # Caso sin trigger automático | schedule_interval = "0 12 * * *" | "0,2 12 * * *"
 
     # FUENTE: CRONTRAB: https://crontab.guru/
     #############################################################
@@ -109,10 +137,15 @@ with DAG(nameDAG,
                                  python_callable=process_and_load_data
                                  )
 
+    task_bq = PythonOperator(task_id='task_bq',
+                                 provide_context=True,
+                                 python_callable=load_csv_to_bigquery
+                                 )
+
     t_end = DummyOperator(task_id="end")
 
     #############################################################
-    t_begin >> task_python >> t_end
+    t_begin >> task_python >> task_bq >> t_end
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
