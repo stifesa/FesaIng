@@ -58,6 +58,8 @@ def dsp_load_data(**kwargs):
         ON A.document_id = D.document_id
         WHERE D.document_id IS NULL
         ORDER BY A.document_id,data,timestamp limit 20"""
+    def parse_json(x):
+        return pd.json_normalize(json.loads(x))
     
     df = client.query(sql).to_dataframe()
     print(df.head(2))
@@ -65,7 +67,7 @@ def dsp_load_data(**kwargs):
     df = df.reset_index(drop=True)
     df['index'] = np.arange(0, len(df))+1
     df['json_data'] = '{"' + df['index'].astype(str) + '":'+ df['data'] + "}"
-    parsed_df = pd.concat([json_normalize(json.loads(js)) for js in df['data']])
+    parsed_df = pd.concat(df['json_data'].apply(parse_json).tolist(), ignore_index=True)
     print('Hola')
     parsed_df = parsed_df.reset_index(drop=True)
     parsed_df= df[['timestamp', 'index']].join([parsed_df])
