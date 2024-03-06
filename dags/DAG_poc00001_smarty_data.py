@@ -108,7 +108,7 @@ def load_csv_to_bigquery(**kwargs):
 
     # Lee el archivo CSV en un DataFrame de pandas
     pre_contenido = pd.read_csv(CSV_PATH)
-    
+    print(pre_contenido.head(3))
     # Carga el DataFrame en BigQuery, reemplazando la tabla si ya existe
     pre_contenido.pandas_gbq.to_gbq(project_id = project,
                     destination_table = 'raw_st.pre_contenido',
