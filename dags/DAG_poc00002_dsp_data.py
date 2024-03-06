@@ -64,6 +64,7 @@ def dsp_load_data(**kwargs):
     df = df.reset_index(drop=True)
     df['index'] = np.arange(0, len(df))+1
     df['json_data'] = '{"' + df['index'].astype(str) + '":'+ df['data'] + "}"
+    print('Hola')
     parsed_df = pd.concat([json_normalize(json.loads(js)) for js in df['data']])
     parsed_df = parsed_df.reset_index(drop=True)
     parsed_df= df[['timestamp', 'index']].join([parsed_df])
