@@ -5,6 +5,7 @@ from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator
 from datetime import datetime, timedelta
 import pandas as pd
+from pandas.io.json import json_normalize
 from google.cloud import bigquery
 from google.cloud import storage
 from googleapiclient.discovery import build
@@ -64,8 +65,8 @@ def dsp_load_data(**kwargs):
     df = df.reset_index(drop=True)
     df['index'] = np.arange(0, len(df))+1
     df['json_data'] = '{"' + df['index'].astype(str) + '":'+ df['data'] + "}"
-    print('Hola')
     parsed_df = pd.concat([json_normalize(json.loads(js)) for js in df['data']])
+    print('Hola')
     parsed_df = parsed_df.reset_index(drop=True)
     parsed_df= df[['timestamp', 'index']].join([parsed_df])
     parsed_df = parsed_df.sort_values(by=['id'])
