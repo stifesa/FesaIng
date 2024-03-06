@@ -55,10 +55,10 @@ def dsp_load_data(**kwargs):
         LEFT JOIN deletes AS D
         ON A.document_id = D.document_id
         WHERE D.document_id IS NULL
-        ORDER BY A.document_id,data,timestamp"""
+        ORDER BY A.document_id,data,timestamp limit 20"""
     
     df = client.query(sql).to_dataframe()
-
+    print(df.head(2))
     # Realiza transformaciones en el DataFrame
     df = df.reset_index(drop=True)
     df['index'] = np.arange(0, len(df))+1
