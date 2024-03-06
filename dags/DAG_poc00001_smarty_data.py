@@ -101,21 +101,21 @@ def load_csv_to_bigquery(**kwargs):
         scopes=['https://www.googleapis.com/auth/drive.readonly',
         "https://www.googleapis.com/auth/cloud-platform"]
     )
+    client = bigquery.Client(credentials=credentials, project=project)
 
     # Define el nombre del archivo en GCS y el path local para guardar el archivo
     OBJECT_NAME = 'st_raw/smarty_kit_contenido.csv'
     CSV_PATH = f'gs://{bucket_name}/{OBJECT_NAME}'
+    DATASET_NAME = 'raw_st'
+    TABLE_NAME = 'pre_contenido'
+    table_id = f"{project}.{DATASET_NAME}.{TABLE_NAME}"
 
     # Lee el archivo CSV en un DataFrame de pandas
     pre_contenido = pd.read_csv(CSV_PATH)
     print(pre_contenido.head(3))
-    # Carga el DataFrame en BigQuery, reemplazando la tabla si ya existe
-    pre_contenido.pandas_gbq.to_gbq(project_id = project,
-                    destination_table = 'raw_st.pre_contenido',
-                    credentials=credentials,
-                    #table_schema = generated_schema,
-                    progress_bar = True,
-                    if_exists = 'replace')
+     # Carga el archivo CSV desde GCS a BigQuery
+    load_job = client.load_table_from_uri(CSV_PATH, table_id, job_config=job_config)
+    load_job.result()  # Espera a que la carga termine
     
 default_args = {
     'owner': owner,                   # The owner of the task.
