@@ -85,9 +85,6 @@ def load_csv_to_bigquery(**kwargs):
     # Crea un cliente de GCS
     client = storage.Client()
 
-    # Define el nombre del archivo en GCS y el path local para guardar el archivo
-    CSV_PATH = f'gs://{bucket}/{blob_name}'
-    
     # Información de BigQuery
     dataset = 'raw_st'
     tabla0001 = 'pre_contenido'
@@ -103,6 +100,9 @@ def load_csv_to_bigquery(**kwargs):
         json.loads(service_account_content.decode('utf-8')),
         scopes=['https://www.googleapis.com/auth/drive.readonly']
     )
+
+    # Define el nombre del archivo en GCS y el path local para guardar el archivo
+    CSV_PATH = f'gs://{bucket_name}/{blob_name}'
 
     # Lee el archivo CSV en un DataFrame de pandas
     pre_contenido = pd.read_csv(CSV_PATH)
