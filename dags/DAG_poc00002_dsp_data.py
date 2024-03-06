@@ -8,7 +8,6 @@ import pandas as pd
 import json
 import os
 import io
-from pandas.io.json import json_normalize
 from google.cloud import bigquery
 from google.cloud import storage
 from googleapiclient.discovery import build
