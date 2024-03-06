@@ -102,7 +102,8 @@ def load_csv_to_bigquery(**kwargs):
     )
 
     # Define el nombre del archivo en GCS y el path local para guardar el archivo
-    CSV_PATH = f'gs://{bucket_name}/{blob_name}'
+    OBJECT_NAME = 'st_raw/smarty_kit_contenido.csv'
+    CSV_PATH = f'gs://{bucket_name}/{OBJECT_NAME}'
 
     # Lee el archivo CSV en un DataFrame de pandas
     pre_contenido = pd.read_csv(CSV_PATH)
