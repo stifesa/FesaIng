@@ -98,7 +98,8 @@ def load_csv_to_bigquery(**kwargs):
     # Carga las credenciales de la cuenta de servicio
     credentials = service_account.Credentials.from_service_account_info(
         json.loads(service_account_content.decode('utf-8')),
-        scopes=['https://www.googleapis.com/auth/drive.readonly']
+        scopes=['https://www.googleapis.com/auth/drive.readonly',
+        "https://www.googleapis.com/auth/cloud-platform"]
     )
 
     # Define el nombre del archivo en GCS y el path local para guardar el archivo
