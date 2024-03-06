@@ -114,7 +114,7 @@ def load_csv_to_bigquery(**kwargs):
     pre_contenido = pd.read_csv(CSV_PATH)
     print(pre_contenido.head(3))
      # Carga el archivo CSV desde GCS a BigQuery
-    load_job = client.load_table_from_uri(CSV_PATH, table_id, job_config=job_config)
+    load_job = client.load_table_from_dataframe(pre_contenido, table_id)
     load_job.result()  # Espera a que la carga termine
     
 default_args = {
