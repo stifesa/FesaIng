@@ -40,7 +40,8 @@ def dsp_load_data(**kwargs):
     # Carga las credenciales de la cuenta de servicio
     credentials = service_account.Credentials.from_service_account_info(
         json.loads(service_account_content.decode('utf-8')),
-        scopes=['https://www.googleapis.com/auth/drive.readonly']
+        scopes=['https://www.googleapis.com/auth/drive.readonly',
+        "https://www.googleapis.com/auth/cloud-platform"]
     )
 
     # Construye el servicio de Google Drive
@@ -92,7 +93,7 @@ with DAG(nameDAG,
          default_args = default_args,
          catchup = False,  # Ver caso catchup = True
          max_active_runs = 3,
-         schedule_interval = "0 2 * * *") as dag: # schedule_interval = None # Caso sin trigger automático | schedule_interval = "0 12 * * *" | "0,2 12 * * *"
+         schedule_interval = "0 3 * * *") as dag: # schedule_interval = None # Caso sin trigger automático | schedule_interval = "0 12 * * *" | "0,2 12 * * *"
 
     # FUENTE: CRONTRAB: https://crontab.guru/
     #############################################################
