@@ -67,11 +67,11 @@ def dsp_load_data(**kwargs):
     parsed_df = parsed_df.reset_index(drop=True)
     parsed_df= df[['timestamp', 'index']].join([parsed_df])
     parsed_df = parsed_df.sort_values(by=['id'])
-    
     # Define el nombre del archivo en GCS y el path local para guardar el archivo
     DATASET_NAME = 'raw_st'
     TABLE_NAME = 'parseo_df'
     table_id = f"{project}.{DATASET_NAME}.{TABLE_NAME}"
+    print(parsed_df.head(2))
     # Carga el archivo CSV desde GCS a BigQuery
     load_job = client.load_table_from_dataframe(parsed_df, table_id)
     load_job.result()
