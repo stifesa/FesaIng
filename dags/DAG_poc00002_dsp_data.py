@@ -70,7 +70,9 @@ def dsp_load_data(**kwargs):
     print('Hola')
     parsed_df = parsed_df.reset_index(drop=True)
     parsed_df= df[['timestamp', 'index']].join([parsed_df])
-    parsed_df = parsed_df.sort_values(by=['id'])
+    print(parsed_df.head(3))
+    print(parsed_df.columns)
+    #parsed_df = parsed_df.sort_values(by=['id'])
     # Define el nombre del archivo en GCS y el path local para guardar el archivo
     DATASET_NAME = 'raw_st'
     TABLE_NAME = 'parseo_df'
