@@ -70,7 +70,10 @@ def dsp_load_data(**kwargs):
     print('Hola')
     parsed_df = parsed_df.reset_index(drop=True)
     parsed_df= df[['timestamp', 'index']].join([parsed_df])
-    print(parsed_df.head(3))
+    results  = pd.DataFrame(parsed_df.columns)
+    total_records = [row.total for row in results][0]  # Asume que el resultado es un solo número
+    # Imprime el total de registros en los logs de Airflow
+    logging.info(f'Total de registros en la tabla: {total_records}')
     print(parsed_df.columns)
     #parsed_df = parsed_df.sort_values(by=['id'])
     # Define el nombre del archivo en GCS y el path local para guardar el archivo
