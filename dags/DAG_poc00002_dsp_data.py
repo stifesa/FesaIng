@@ -8,6 +8,7 @@ import pandas as pd
 import json
 import os
 import io
+import logging
 from google.cloud import bigquery
 from google.cloud import storage
 from googleapiclient.discovery import build
@@ -70,11 +71,14 @@ def dsp_load_data(**kwargs):
     print('Hola')
     parsed_df = parsed_df.reset_index(drop=True)
     parsed_df= df[['timestamp', 'index']].join([parsed_df])
-    results  = pd.DataFrame(parsed_df.columns)
-    total_records = [row.total for row in results][0]  # Asume que el resultado es un solo número
-    # Imprime el total de registros en los logs de Airflow
-    logging.info(f'Total de registros en la tabla: {total_records}')
-    print(parsed_df.columns)
+    results  = pd.DataFrame({'Row': parsed_df.columns})
+    for index, row in results.iterrows():
+        # Accede al valor en la columna 'NombresDeColumnas'
+        valor_columna = row['Row']
+        
+        # Usa print para mostrar el valor
+        print(f'Valor de la columna {index + 1}: {valor_columna}')
+        
     #parsed_df = parsed_df.sort_values(by=['id'])
     # Define el nombre del archivo en GCS y el path local para guardar el archivo
     DATASET_NAME = 'raw_st'
