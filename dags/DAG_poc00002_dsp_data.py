@@ -57,7 +57,7 @@ def dsp_load_data(**kwargs):
         LEFT JOIN deletes AS D
         ON A.document_id = D.document_id
         WHERE D.document_id IS NULL
-        ORDER BY A.document_id,data,timestamp limit 20"""
+        ORDER BY A.document_id,data,timestamp limit 300"""
     def parse_json(x):
         return pd.json_normalize(json.loads(x))
     
@@ -69,11 +69,19 @@ def dsp_load_data(**kwargs):
     #df['json_data'] = '{"' + df['index'].astype(str) + '":'+ df['data'] + "}"
     df['json_data'] = df['data']
     parsed_df = pd.concat(df['json_data'].apply(parse_json).tolist(), ignore_index=True)
-    print('Hola')
     parsed_df = parsed_df.reset_index(drop=True)
     parsed_df= df[['timestamp', 'index']].join([parsed_df])
-    parsed_df.shape
-    #parsed_df = parsed_df.sort_values(by=['id'])
+    parsed_df.sort_values(['timestamp', 'id'], ascending=[False, True], inplace=True)
+    parsed_df['finalizedAt._seconds'] = parsed_df['finalizedAt._seconds'].fillna(0)
+    parsed_df['tracingAt._seconds'] = parsed_df['tracingAt._seconds'].fillna(0)
+    parsed_df['processAt._seconds'] = parsed_df['processAt._seconds'].fillna(0)
+    parsed_df['creacion'] = parsed_df['createdAt._seconds'].apply(lambda x:datetime.fromtimestamp(x).strftime("%d/%m/%Y %H:%M:%S"))
+    parsed_df['Rank'] = 1
+    parsed_df['Rank'] = parsed_df.groupby(['id'])['Rank'].cumsum()
+    n_by_iddata = parsed_df.loc[(parsed_df.Rank == 1)]
+    #quality=n_by_iddata[['id','eventType','state','timestamp','creacion','finalizacion','seguimiento','index','state','workOrder','workShop','partNumber','generalImages','miningOperation','specialist.name','enventDetail','analysis.observation','analysis.process','analysis.bahia','analysis.basicCause','analysis.responsable','analysis.causeFailure','analysis.responsibleWorkshop.workshopName','reportingWorkshop.workshopName','createdBy.email','correctiveActions','component','proceso_inicio']]
+    #quality.columns = ['id','TipoEvento','estado_final','Ultima_mod', 'Fecha_creacion','Fecha_fin','fecha_seguimiento', 'indice','estado','workorder','Taller','NumParte','Imagen','OperacionMin','Especialista','DetalleEvento','Observacion','Proceso','Bahia','CausaBasica','Responsable','CausaFalla','TallerResponable','TallerReporta','email_registro','AccionCorrectiva','component','proceso_inicio']
+
     # Define el nombre del archivo en GCS y el path local para guardar el archivo
     DATASET_NAME = 'raw_st'
     TABLE_NAME = 'parseo_df'
