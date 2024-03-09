@@ -66,19 +66,13 @@ def dsp_load_data(**kwargs):
     # Realiza transformaciones en el DataFrame
     df = df.reset_index(drop=True)
     df['index'] = np.arange(0, len(df))+1
-    df['json_data'] = '{"' + df['index'].astype(str) + '":'+ df['data'] + "}"
+    #df['json_data'] = '{"' + df['index'].astype(str) + '":'+ df['data'] + "}"
+    df['json_data'] = df['data']
     parsed_df = pd.concat(df['json_data'].apply(parse_json).tolist(), ignore_index=True)
     print('Hola')
     parsed_df = parsed_df.reset_index(drop=True)
     parsed_df= df[['timestamp', 'index']].join([parsed_df])
-    results  = pd.DataFrame({'Row': parsed_df.columns})
-    for index, row in results.iterrows():
-        # Accede al valor en la columna 'NombresDeColumnas'
-        valor_columna = row['Row']
-        
-        # Usa print para mostrar el valor
-        print(f'Valor de la columna {index + 1}: {valor_columna}')
-        
+    parsed_df.shape
     #parsed_df = parsed_df.sort_values(by=['id'])
     # Define el nombre del archivo en GCS y el path local para guardar el archivo
     DATASET_NAME = 'raw_st'
@@ -86,8 +80,8 @@ def dsp_load_data(**kwargs):
     table_id = f"{project}.{DATASET_NAME}.{TABLE_NAME}"
     print(parsed_df.head(2))
     # Carga el archivo CSV desde GCS a BigQuery
-    load_job = client.load_table_from_dataframe(parsed_df, table_id)
-    load_job.result()
+    #load_job = client.load_table_from_dataframe(parsed_df, table_id)
+    #load_job.result()
 
 default_args = {
     'owner': owner,                   # The owner of the task.
