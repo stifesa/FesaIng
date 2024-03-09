@@ -3,6 +3,7 @@
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator
+import datetime
 from datetime import datetime, timedelta
 import pandas as pd
 import json
@@ -14,7 +15,6 @@ from google.cloud import storage
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
 from google.oauth2 import service_account
-import datetime
 import pandas_gbq
 import numpy as np
 
@@ -62,7 +62,6 @@ def dsp_load_data(**kwargs):
         return pd.json_normalize(json.loads(x))
     
     df = client.query(sql).to_dataframe()
-    print(df.head(2))
     # Realiza transformaciones en el DataFrame
     df = df.reset_index(drop=True)
     df['index'] = np.arange(0, len(df))+1
@@ -75,6 +74,7 @@ def dsp_load_data(**kwargs):
     parsed_df['finalizedAt._seconds'] = parsed_df['finalizedAt._seconds'].fillna(0)
     parsed_df['tracingAt._seconds'] = parsed_df['tracingAt._seconds'].fillna(0)
     parsed_df['processAt._seconds'] = parsed_df['processAt._seconds'].fillna(0)
+    print(parsed_df['createdAt._seconds'].head())
     parsed_df['creacion'] = parsed_df['createdAt._seconds'].apply(lambda x:datetime.fromtimestamp(x).strftime("%d/%m/%Y %H:%M:%S"))
     parsed_df['Rank'] = 1
     parsed_df['Rank'] = parsed_df.groupby(['id'])['Rank'].cumsum()
