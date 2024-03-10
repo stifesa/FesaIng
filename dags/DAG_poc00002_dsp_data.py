@@ -3,7 +3,7 @@
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator
-import datetime
+import datetime as dt
 from datetime import datetime, timedelta
 import pandas as pd
 import json
@@ -75,7 +75,7 @@ def dsp_load_data(**kwargs):
     parsed_df['tracingAt._seconds'] = parsed_df['tracingAt._seconds'].fillna(0)
     parsed_df['processAt._seconds'] = parsed_df['processAt._seconds'].fillna(0)
     print(parsed_df['createdAt._seconds'].head())
-    parsed_df['creacion'] = parsed_df['createdAt._seconds'].apply(lambda x:datetime.fromtimestamp(x).strftime("%d/%m/%Y %H:%M:%S"))
+    parsed_df['creacion'] = parsed_df['createdAt._seconds'].apply(lambda x:dt.fromtimestamp(x).strftime("%d/%m/%Y %H:%M:%S"))
     parsed_df['Rank'] = 1
     parsed_df['Rank'] = parsed_df.groupby(['id'])['Rank'].cumsum()
     n_by_iddata = parsed_df.loc[(parsed_df.Rank == 1)]
@@ -94,12 +94,12 @@ def dsp_load_data(**kwargs):
 default_args = {
     'owner': owner,                   # The owner of the task.
     'depends_on_past': False,         # Task instance should not rely on the previous task's schedule to succeed.
-    'start_date': datetime.datetime(2022, 11, 5),
+    'start_date': dt.datetime(2022, 11, 5),
     'email': email,
     'email_on_failure': True,
     'email_on_retry': True,
     'retries': 1,  # Retry once before failing the task.
-    'retry_delay': datetime.timedelta(minutes=1),  # Time between retries
+    'retry_delay': dt.timedelta(minutes=1),  # Time between retries
     'project_id': project,  # Cloud Composer project ID
 }
 
