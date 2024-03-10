@@ -57,7 +57,7 @@ def dsp_load_data(**kwargs):
         LEFT JOIN deletes AS D
         ON A.document_id = D.document_id
         WHERE D.document_id IS NULL
-        ORDER BY A.document_id,data,timestamp limit 400"""
+        ORDER BY A.document_id,data,timestamp"""
     def parse_json(x):
         return pd.json_normalize(json.loads(x))
     
