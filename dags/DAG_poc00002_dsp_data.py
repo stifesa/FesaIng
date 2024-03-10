@@ -57,7 +57,7 @@ def dsp_load_data(**kwargs):
         LEFT JOIN deletes AS D
         ON A.document_id = D.document_id
         WHERE D.document_id IS NULL
-        ORDER BY A.document_id,data,timestamp limit 300"""
+        ORDER BY A.document_id,data,timestamp limit 400"""
     def parse_json(x):
         return pd.json_normalize(json.loads(x))
     
@@ -94,11 +94,13 @@ def dsp_load_data(**kwargs):
     TABLE_NAME = 'dsp_calidad'
     table_id = f"{project}.{DATASET_NAME}.{TABLE_NAME}"
     quality.reset_index(inplace=True, drop=True)
-    for columna, tipo in quality.dtypes.items():
-        print(f'Tipo de dato de la columna {columna}: {tipo}')
+    columnas_objeto = quality.select_dtypes(include=['object']).columns
+    quality[columnas_objeto] = quality[columnas_objeto].astype('object')
+    #for columna, tipo in quality.dtypes.items():
+    #    print(f'Tipo de dato de la columna {columna}: {tipo}')
     # Carga el archivo CSV desde GCS a BigQuery
-    #load_job = client.load_table_from_dataframe(quality, table_id)
-    #load_job.result()
+    load_job = client.load_table_from_dataframe(quality, table_id)
+    load_job.result()
 
 default_args = {
     'owner': owner,                   # The owner of the task.
