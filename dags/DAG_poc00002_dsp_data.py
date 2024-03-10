@@ -75,7 +75,8 @@ def dsp_load_data(**kwargs):
     parsed_df['tracingAt._seconds'] = parsed_df['tracingAt._seconds'].fillna(0)
     parsed_df['processAt._seconds'] = parsed_df['processAt._seconds'].fillna(0)
     print(parsed_df['createdAt._seconds'].head())
-    parsed_df['creacion'] = parsed_df['createdAt._seconds'].apply(lambda x:dt.fromtimestamp(x).strftime("%d/%m/%Y %H:%M:%S"))
+    parsed_df['creacion'] = pd.to_datetime(parsed_df['createdAt._seconds'], unit='s')
+    parsed_df['creacion'] = parsed_df['creacion'].dt.strftime("%d/%m/%Y %H:%M:%S")
     parsed_df['Rank'] = 1
     parsed_df['Rank'] = parsed_df.groupby(['id'])['Rank'].cumsum()
     n_by_iddata = parsed_df.loc[(parsed_df.Rank == 1)]
