@@ -3,6 +3,8 @@
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import from_json, explode, col
 import datetime as dt
 from datetime import datetime, timedelta
 import pandas as pd
@@ -28,6 +30,9 @@ owner             = 'ALNETAHU'
 email             = ['astroboticapps@gmail.com']
 GBQ_CONNECTION_ID = 'bigquery_default'
 service_account_path = 'gs://st_raw/crdfesa/ferreyros-mvp-3cf04ce5fdcc.json'
+spark = SparkSession.builder \
+    .appName("Json Parse") \
+    .getOrCreate()
 #######################################################################################
 
 def dsp_load_data(**kwargs):
@@ -57,7 +62,55 @@ def dsp_load_data(**kwargs):
         LEFT JOIN deletes AS D
         ON A.document_id = D.document_id
         WHERE D.document_id IS NULL
-        ORDER BY A.document_id,data,timestamp limit 5000 """
+        ORDER BY A.document_id,data,timestamp """
+    analysis_schema = StructType([
+        StructField('bahia', StringType(), True),
+        StructField('basicCause', StringType(), True),
+        StructField('observation', StringType(), True),
+        StructField('process', StringType(), True),
+        StructField('responsable', StringType(), True),
+        StructField('causeFailure', StringType(), True),
+        StructField('responsibleWorkshop', StructType([
+            StructField('workshopName', LongType(), True)
+        ]), True)
+    ])
+    json_schema = StructType([
+        StructField('analysis', analysis_schema, True),
+        StructField('workOrder', StringType(), True),
+        StructField('id', StringType(), True),
+        StructField('eventType', StringType(), True),
+        StructField('state', StringType(), True),
+        StructField('workShop', StringType(), True),
+        StructField('miningOperation', StringType(), True),
+        StructField('packageNumber', StringType(), True),
+        StructField('question1', StringType(), True),
+        StructField('packageNumber', StringType(), True),
+        StructField('component', StringType(), True),
+        StructField('partNumber', StringType(), True),
+        StructField('generalImages', StringType(), True),
+        StructField('correctiveActions', StringType(), True),
+        StructField('createdAt', StructType([
+            StructField('_seconds', LongType(), True)
+        ]), True),
+        StructField('processAt', StructType([
+            StructField('_seconds', LongType(), True)
+        ]), True),
+        StructField('finalizedAt', StructType([
+            StructField('_seconds', LongType(), True)
+        ]), True),
+        StructField('tracingAt', StructType([
+            StructField('_seconds', LongType(), True)
+        ]), True),
+        StructField('reportingWorkshop', StructType([
+            StructField('workshopName', LongType(), True)
+        ]), True),
+        StructField('createdBy', StructType([
+            StructField('email', LongType(), True)
+        ]), True),
+        StructField('specialist', StructType([
+            StructField('name', LongType(), True)
+        ]), True)
+    ])
     def parse_json(x):
         return pd.json_normalize(json.loads(x))
     
@@ -67,38 +120,39 @@ def dsp_load_data(**kwargs):
     df['index'] = np.arange(0, len(df))+1
     #df['json_data'] = '{"' + df['index'].astype(str) + '":'+ df['data'] + "}"
     df['json_data'] = df['data']
-    parsed_df = pd.concat(df['json_data'].apply(parse_json).tolist(), ignore_index=True)
-    parsed_df = parsed_df.reset_index(drop=True)
-    parsed_df= df[['timestamp', 'index']].join([parsed_df])
-    parsed_df.sort_values(['timestamp', 'id'], ascending=[False, True], inplace=True)
-    parsed_df['finalizedAt._seconds'] = parsed_df['finalizedAt._seconds'].fillna(0)
-    parsed_df['tracingAt._seconds'] = parsed_df['tracingAt._seconds'].fillna(0)
-    parsed_df['processAt._seconds'] = parsed_df['processAt._seconds'].fillna(0)
-    parsed_df['creacion'] = pd.to_datetime(parsed_df['createdAt._seconds'], unit='s')
-    parsed_df['creacion'] = parsed_df['creacion'].dt.strftime("%d/%m/%Y %H:%M:%S")
-    parsed_df['finalizacion'] = pd.to_datetime(parsed_df['finalizedAt._seconds'], unit='s')
-    parsed_df['finalizacion'] = parsed_df['finalizacion'].dt.strftime("%d/%m/%Y %H:%M:%S")
-    parsed_df['proceso_inicio'] = pd.to_datetime(parsed_df['processAt._seconds'], unit='s')
-    parsed_df['proceso_inicio'] = parsed_df['proceso_inicio'].dt.strftime("%d/%m/%Y %H:%M:%S")
-    parsed_df['seguimiento'] = pd.to_datetime(parsed_df['tracingAt._seconds'], unit='s')
-    parsed_df['seguimiento'] = parsed_df['seguimiento'].dt.strftime("%d/%m/%Y %H:%M:%S")
-    parsed_df['Rank'] = 1
-    parsed_df['Rank'] = parsed_df.groupby(['id'])['Rank'].cumsum()
-    n_by_iddata = parsed_df.loc[(parsed_df.Rank == 1)]
-    quality=n_by_iddata[['id','eventType','state','timestamp','creacion','finalizacion','seguimiento','index','state','workOrder','workShop','partNumber','generalImages','miningOperation','specialist.name','enventDetail','analysis.observation','analysis.process','analysis.bahia','analysis.basicCause','analysis.responsable','analysis.causeFailure','analysis.responsibleWorkshop.workshopName','reportingWorkshop.workshopName','createdBy.email','correctiveActions','component','proceso_inicio','question1','packageNumber']]
-    quality.columns = ['id','TipoEvento','estado_final','Ultima_mod', 'Fecha_creacion','Fecha_fin','fecha_seguimiento', 'indice','estado','workorder','Taller','NumParte','Imagen','OperacionMin','Especialista','DetalleEvento','Observacion','Proceso','Bahia','CausaBasica','Responsable','CausaFalla','TallerResponable','TallerReporta','email_registro','AccionCorrectiva','component','proceso_inicio','question1','plaqueteo']
+    df_parsed = df.withColumn("parsed_data", from_json(col("data_json"), json_schema))
+    print(df_parsed.head())
+    #parsed_df = pd.concat(df['json_data'].apply(parse_json).tolist(), ignore_index=True)
+    #parsed_df = parsed_df.reset_index(drop=True)
+    #parsed_df= df[['timestamp', 'index']].join([parsed_df])
+    #parsed_df.sort_values(['timestamp', 'id'], ascending=[False, True], inplace=True)
+    #parsed_df['finalizedAt._seconds'] = parsed_df['finalizedAt._seconds'].fillna(0)
+    #parsed_df['tracingAt._seconds'] = parsed_df['tracingAt._seconds'].fillna(0)
+    #parsed_df['processAt._seconds'] = parsed_df['processAt._seconds'].fillna(0)
+    #parsed_df['creacion'] = pd.to_datetime(parsed_df['createdAt._seconds'], unit='s')
+    #parsed_df['creacion'] = parsed_df['creacion'].dt.strftime("%d/%m/%Y %H:%M:%S")
+    #parsed_df['finalizacion'] = pd.to_datetime(parsed_df['finalizedAt._seconds'], unit='s')
+    #parsed_df['finalizacion'] = parsed_df['finalizacion'].dt.strftime("%d/%m/%Y %H:%M:%S")
+    #parsed_df['proceso_inicio'] = pd.to_datetime(parsed_df['processAt._seconds'], unit='s')
+    #parsed_df['proceso_inicio'] = parsed_df['proceso_inicio'].dt.strftime("%d/%m/%Y %H:%M:%S")
+    #parsed_df['seguimiento'] = pd.to_datetime(parsed_df['tracingAt._seconds'], unit='s')
+    #parsed_df['seguimiento'] = parsed_df['seguimiento'].dt.strftime("%d/%m/%Y %H:%M:%S")
+    #parsed_df['Rank'] = 1
+    #parsed_df['Rank'] = parsed_df.groupby(['id'])['Rank'].cumsum()
+    #n_by_iddata = parsed_df.loc[(parsed_df.Rank == 1)]
+    #quality=n_by_iddata[['id','eventType','state','timestamp','creacion','finalizacion','seguimiento','index','state','workOrder','workShop','partNumber','generalImages','miningOperation','specialist.name','enventDetail','analysis.observation','analysis.process','analysis.bahia','analysis.basicCause','analysis.responsable','analysis.causeFailure','analysis.responsibleWorkshop.workshopName','reportingWorkshop.workshopName','createdBy.email','correctiveActions','component','proceso_inicio','question1','packageNumber']]
+    #quality.columns = ['id','TipoEvento','estado_final','Ultima_mod', 'Fecha_creacion','Fecha_fin','fecha_seguimiento', 'indice','estado','workorder','Taller','NumParte','Imagen','OperacionMin','Especialista','DetalleEvento','Observacion','Proceso','Bahia','CausaBasica','Responsable','CausaFalla','TallerResponable','TallerReporta','email_registro','AccionCorrectiva','component','proceso_inicio','question1','plaqueteo']
 
     # Define el nombre del archivo en GCS y el path local para guardar el archivo
     DATASET_NAME = 'raw_st'
     TABLE_NAME = 'dsp_calidad'
     table_id = f"{project}.{DATASET_NAME}.{TABLE_NAME}"
-    quality.reset_index(inplace=True, drop=True)
-    quality = quality.astype(str)
-    #for columna, tipo in quality.dtypes.items():
-    #    print(f'Tipo de dato de la columna {columna}: {tipo}')
+    #quality.reset_index(inplace=True, drop=True)
+    #quality = quality.astype(str)
+
     # Carga el archivo CSV desde GCS a BigQuery
-    load_job = client.load_table_from_dataframe(quality, table_id)
-    load_job.result()
+    #load_job = client.load_table_from_dataframe(quality, table_id)
+    #load_job.result()
 
 default_args = {
     'owner': owner,                   # The owner of the task.
