@@ -93,7 +93,8 @@ def dsp_load_data(**kwargs):
     DATASET_NAME = 'raw_st'
     TABLE_NAME = 'dsp_calidad'
     table_id = f"{project}.{DATASET_NAME}.{TABLE_NAME}"
-    print(parsed_df.head(2))
+    quality.reset_index(inplace=True, drop=True)
+    print(quality.head(2))
     # Carga el archivo CSV desde GCS a BigQuery
     load_job = client.load_table_from_dataframe(quality, table_id)
     load_job.result()
