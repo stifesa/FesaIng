@@ -4,8 +4,8 @@ from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator
 from pyspark.sql import SparkSession
-import pyspark
 from pyspark.sql.functions import from_json, explode, col
+from pyspark.sql.types import StructType, StructField, StringType, LongType
 import datetime as dt
 from datetime import datetime, timedelta
 import pandas as pd
