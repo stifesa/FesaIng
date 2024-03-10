@@ -74,7 +74,6 @@ def dsp_load_data(**kwargs):
     parsed_df['finalizedAt._seconds'] = parsed_df['finalizedAt._seconds'].fillna(0)
     parsed_df['tracingAt._seconds'] = parsed_df['tracingAt._seconds'].fillna(0)
     parsed_df['processAt._seconds'] = parsed_df['processAt._seconds'].fillna(0)
-    print(parsed_df['createdAt._seconds'].head())
     parsed_df['creacion'] = pd.to_datetime(parsed_df['createdAt._seconds'], unit='s')
     parsed_df['creacion'] = parsed_df['creacion'].dt.strftime("%d/%m/%Y %H:%M:%S")
     parsed_df['finalizacion'] = pd.to_datetime(parsed_df['finalizedAt._seconds'], unit='s')
@@ -94,8 +93,7 @@ def dsp_load_data(**kwargs):
     TABLE_NAME = 'dsp_calidad'
     table_id = f"{project}.{DATASET_NAME}.{TABLE_NAME}"
     quality.reset_index(inplace=True, drop=True)
-    columnas_objeto = quality.select_dtypes(include=['object']).columns
-    quality[columnas_objeto] = quality[columnas_objeto].astype('object')
+    quality = quality.astype(str)
     #for columna, tipo in quality.dtypes.items():
     #    print(f'Tipo de dato de la columna {columna}: {tipo}')
     # Carga el archivo CSV desde GCS a BigQuery
