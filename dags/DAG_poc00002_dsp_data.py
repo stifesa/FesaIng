@@ -94,7 +94,7 @@ def dsp_load_data(**kwargs):
     TABLE_NAME = 'dsp_calidad'
     table_id = f"{project}.{DATASET_NAME}.{TABLE_NAME}"
     quality.reset_index(inplace=True, drop=True)
-    for columna, tipo in quality.dtypes.iteritems():
+    for columna, tipo in quality.dtypes.items():
         print(f'Tipo de dato de la columna {columna}: {tipo}')
     # Carga el archivo CSV desde GCS a BigQuery
     #load_job = client.load_table_from_dataframe(quality, table_id)
