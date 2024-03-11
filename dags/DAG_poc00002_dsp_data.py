@@ -84,6 +84,7 @@ def dsp_load_data(**kwargs):
             'miningOperation': json_data.get('miningOperation', ''),
             'packageNumber': json_data.get('packageNumber', ''),
             'question1': json_data.get('question1', ''),
+            'enventDetail': json_data.get('enventDetail', ''),
             'component': json_data.get('component', ''),
             'partNumber': json_data.get('partNumber', ''),
             'generalImages': json_data.get('generalImages', ''),
