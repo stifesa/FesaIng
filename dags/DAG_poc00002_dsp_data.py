@@ -73,10 +73,22 @@ def dsp_load_data(**kwargs):
                 return d[key].get(subkey, '')
             else:
                 return ''
+        def get_deep_nested_value(d, keys):
+        # Inicializar el valor temporal con el diccionario completo
+            temp = d
+            # Iterar a través de las claves para acceder al valor deseado
+            for key in keys:
+                # Verificar si la clave existe y si el valor asociado es un diccionario
+                if key in temp and isinstance(temp[key], dict):
+                    temp = temp[key]  # Acceder al siguiente nivel
+                else:
+                    return ''  # Retornar vacío si alguna clave intermedia no existe
+            return temp  # Retornar el valor final si todas las claves existen
     
         # Extraer los campos deseados del JSON
         data = {
             'workOrder': json_data.get('workOrder', ''),
+            'responsibleWorkshop': get_deep_nested_value(json_data, ['analysis', 'responsibleWorkshop', 'workshopName']),
             'id': json_data.get('id', ''),
             'eventType': json_data.get('eventType', ''),
             'state': json_data.get('state', ''),
@@ -134,8 +146,8 @@ def dsp_load_data(**kwargs):
     df_final['Rank'] = df_final.groupby(['id'])['Rank'].cumsum()
     n_by_iddata = df_final.loc[(df_final.Rank == 1)]
     print(n_by_iddata.head())
-    quality=n_by_iddata[['id','eventType','state','timestamp','creacion','finalizacion','seguimiento','index','state','workOrder','workShop','partNumber','generalImages','miningOperation','specialist','enventDetail','observation','process','bahia','basicCause','responsable','causeFailure','reportingWorkshop','createdBy_email','correctiveActions','component','proceso_inicio','question1','packageNumber']]
-    quality.columns = ['id','TipoEvento','estado_final','Ultima_mod', 'Fecha_creacion','Fecha_fin','fecha_seguimiento', 'indice','estado','workorder','Taller','NumParte','Imagen','OperacionMin','Especialista','DetalleEvento','Observacion','Proceso','Bahia','CausaBasica','Responsable','CausaFalla','TallerReporta','email_registro','AccionCorrectiva','component','proceso_inicio','question1','plaqueteo']
+    quality=n_by_iddata[['id','eventType','state','timestamp','creacion','finalizacion','seguimiento','index','state','workOrder','workShop','partNumber','generalImages','miningOperation','specialist','enventDetail','observation','process','bahia','basicCause','responsable','causeFailure','reportingWorkshop','createdBy_email','correctiveActions','component','proceso_inicio','question1','packageNumber','responsibleWorkshop']]
+    quality.columns = ['id','TipoEvento','estado_final','Ultima_mod', 'Fecha_creacion','Fecha_fin','fecha_seguimiento', 'indice','estado','workorder','Taller','NumParte','Imagen','OperacionMin','Especialista','DetalleEvento','Observacion','Proceso','Bahia','CausaBasica','Responsable','CausaFalla','TallerReporta','email_registro','AccionCorrectiva','component','proceso_inicio','question1','plaqueteo','responsibleWorkshop']
 
     # Define el nombre del archivo en GCS y el path local para guardar el archivo
     DATASET_NAME = 'raw_st'
@@ -164,7 +176,7 @@ with DAG(nameDAG,
          default_args = default_args,
          catchup = False,  # Ver caso catchup = True
          max_active_runs = 3,
-         schedule_interval = "0 10 * * *") as dag: # schedule_interval = None # Caso sin trigger automático | schedule_interval = "0 12 * * *" | "0,2 12 * * *"
+         schedule_interval = "0 */6 * * *") as dag: # schedule_interval = None # Caso sin trigger automático | schedule_interval = "0 12 * * *" | "0,2 12 * * *"
 
     # FUENTE: CRONTRAB: https://crontab.guru/
     #############################################################
