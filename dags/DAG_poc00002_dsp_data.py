@@ -184,8 +184,8 @@ def dsp_load_data(**kwargs):
     quality = quality.astype(str)
 
     # Carga el archivo CSV desde GCS a BigQuery
-    load_job = client.load_table_from_dataframe(quality, table_id)
-    load_job.result()
+    #load_job = client.load_table_from_dataframe(quality, table_id)
+    #load_job.result()
 
 default_args = {
     'owner': owner,                   # The owner of the task.
