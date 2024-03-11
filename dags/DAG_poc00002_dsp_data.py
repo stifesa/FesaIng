@@ -121,7 +121,8 @@ def dsp_load_data(**kwargs):
     df['index'] = np.arange(0, len(df))+1
     #df['json_data'] = '{"' + df['index'].astype(str) + '":'+ df['data'] + "}"
     df['json_data'] = df['data']
-    df_parsed = df.withColumn("parsed_data", from_json(col("data_json"), json_schema))
+    print(df.head())
+    df_parsed = df.withColumn("parsed_data", from_json(col("json_data"), json_schema))
     print(df_parsed.head())
     #parsed_df = pd.concat(df['json_data'].apply(parse_json).tolist(), ignore_index=True)
     #parsed_df = parsed_df.reset_index(drop=True)
