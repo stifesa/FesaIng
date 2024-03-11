@@ -133,7 +133,6 @@ def dsp_load_data(**kwargs):
             'processAt': json_data.get('processAt', {}).get('_seconds', ''),
             'finalizedAt': json_data.get('finalizedAt', {}).get('_seconds', ''),
             'tracingAt': json_data.get('tracingAt', {}).get('_seconds', ''),
-            'reportingWorkshop': json_data.get('reportingWorkshop', {}).get('workshopName', ''),
             'createdBy': json_data.get('createdBy', {}).get('email', ''),
             'specialist': json_data.get('specialist', {}).get('name', '')
         }
