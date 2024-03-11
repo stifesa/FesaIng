@@ -64,54 +64,7 @@ def dsp_load_data(**kwargs):
         ON A.document_id = D.document_id
         WHERE D.document_id IS NULL
         ORDER BY A.document_id,data,timestamp """
-    analysis_schema = StructType([
-        StructField('bahia', StringType(), True),
-        StructField('basicCause', StringType(), True),
-        StructField('observation', StringType(), True),
-        StructField('process', StringType(), True),
-        StructField('responsable', StringType(), True),
-        StructField('causeFailure', StringType(), True),
-        StructField('responsibleWorkshop', StructType([
-            StructField('workshopName', LongType(), True)
-        ]), True)
-    ])
-    json_schema = StructType([
-        StructField('analysis', analysis_schema, True),
-        StructField('workOrder', StringType(), True),
-        StructField('id', StringType(), True),
-        StructField('eventType', StringType(), True),
-        StructField('state', StringType(), True),
-        StructField('workShop', StringType(), True),
-        StructField('miningOperation', StringType(), True),
-        StructField('packageNumber', StringType(), True),
-        StructField('question1', StringType(), True),
-        StructField('packageNumber', StringType(), True),
-        StructField('component', StringType(), True),
-        StructField('partNumber', StringType(), True),
-        StructField('generalImages', StringType(), True),
-        StructField('correctiveActions', StringType(), True),
-        StructField('createdAt', StructType([
-            StructField('_seconds', LongType(), True)
-        ]), True),
-        StructField('processAt', StructType([
-            StructField('_seconds', LongType(), True)
-        ]), True),
-        StructField('finalizedAt', StructType([
-            StructField('_seconds', LongType(), True)
-        ]), True),
-        StructField('tracingAt', StructType([
-            StructField('_seconds', LongType(), True)
-        ]), True),
-        StructField('reportingWorkshop', StructType([
-            StructField('workshopName', LongType(), True)
-        ]), True),
-        StructField('createdBy', StructType([
-            StructField('email', LongType(), True)
-        ]), True),
-        StructField('specialist', StructType([
-            StructField('name', LongType(), True)
-        ]), True)
-    ])
+    
     def parse_json(x):
         json_data = json.loads(x)
         def get_nested_value(d, key, subkey):
@@ -135,10 +88,16 @@ def dsp_load_data(**kwargs):
             'partNumber': json_data.get('partNumber', ''),
             'generalImages': json_data.get('generalImages', ''),
             'correctiveActions': json_data.get('correctiveActions', ''),
+            'observation': json_data.get('analysis', {}).get('observation', ''),
+            'process': json_data.get('analysis', {}).get('process', ''),
+            'bahia': json_data.get('analysis', {}).get('bahia', ''),
+            'basicCause': json_data.get('analysis', {}).get('basicCause', ''),
+            'responsable': json_data.get('analysis', {}).get('responsable', ''),
+            'causeFailure': json_data.get('analysis', {}).get('causeFailure', ''),
             'processAt': json_data.get('processAt', {}).get('_seconds', ''),
             'finalizedAt': json_data.get('finalizedAt', {}).get('_seconds', ''),
             'tracingAt': json_data.get('tracingAt', {}).get('_seconds', ''),
-            'createdBy': json_data.get('createdBy', {}).get('email', ''),
+            'createdBy_email': json_data.get('createdBy', {}).get('email', ''),
             'specialist': json_data.get('specialist', ''),
             'reportingWorkshop': get_nested_value(json_data, 'reportingWorkshop', 'workshopName'),
             'specialist': get_nested_value(json_data, 'specialist', 'name'),
@@ -153,7 +112,7 @@ def dsp_load_data(**kwargs):
     #df['json_data'] = '{"' + df['index'].astype(str) + '":'+ df['data'] + "}"
     df['json_data'] = df['data']
     df_parsed = df['json_data'].apply(parse_json)
-    print(df_parsed.head())
+    
     #parsed_df = pd.concat(df['json_data'].apply(parse_json).tolist(), ignore_index=True)
     #parsed_df = parsed_df.reset_index(drop=True)
     df_final = pd.concat([df, df_parsed], axis=1)
@@ -173,8 +132,9 @@ def dsp_load_data(**kwargs):
     df_final['Rank'] = 1
     df_final['Rank'] = df_final.groupby(['id'])['Rank'].cumsum()
     n_by_iddata = df_final.loc[(df_final.Rank == 1)]
-    quality=n_by_iddata[['id','eventType','state','timestamp','creacion','finalizacion','seguimiento','index','state','workOrder','workShop','partNumber','generalImages','miningOperation','specialist.name','enventDetail','analysis.observation','analysis.process','analysis.bahia','analysis.basicCause','analysis.responsable','analysis.causeFailure','analysis.responsibleWorkshop.workshopName','reportingWorkshop.workshopName','createdBy.email','correctiveActions','component','proceso_inicio','question1','packageNumber']]
-    quality.columns = ['id','TipoEvento','estado_final','Ultima_mod', 'Fecha_creacion','Fecha_fin','fecha_seguimiento', 'indice','estado','workorder','Taller','NumParte','Imagen','OperacionMin','Especialista','DetalleEvento','Observacion','Proceso','Bahia','CausaBasica','Responsable','CausaFalla','TallerResponable','TallerReporta','email_registro','AccionCorrectiva','component','proceso_inicio','question1','plaqueteo']
+    print(n_by_iddata.head())
+    quality=n_by_iddata[['id','eventType','state','timestamp','creacion','finalizacion','seguimiento','index','state','workOrder','workShop','partNumber','generalImages','miningOperation','specialist','enventDetail','observation','process','bahia','basicCause','responsable','causeFailure','reportingWorkshop','createdBy_email','correctiveActions','component','proceso_inicio','question1','packageNumber']]
+    quality.columns = ['id','TipoEvento','estado_final','Ultima_mod', 'Fecha_creacion','Fecha_fin','fecha_seguimiento', 'indice','estado','workorder','Taller','NumParte','Imagen','OperacionMin','Especialista','DetalleEvento','Observacion','Proceso','Bahia','CausaBasica','Responsable','CausaFalla','TallerReporta','email_registro','AccionCorrectiva','component','proceso_inicio','question1','plaqueteo']
 
     # Define el nombre del archivo en GCS y el path local para guardar el archivo
     DATASET_NAME = 'raw_st'
@@ -184,8 +144,8 @@ def dsp_load_data(**kwargs):
     quality = quality.astype(str)
 
     # Carga el archivo CSV desde GCS a BigQuery
-    #load_job = client.load_table_from_dataframe(quality, table_id)
-    #load_job.result()
+    load_job = client.load_table_from_dataframe(quality, table_id)
+    load_job.result()
 
 default_args = {
     'owner': owner,                   # The owner of the task.
