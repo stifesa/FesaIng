@@ -129,12 +129,12 @@ def dsp_load_data(**kwargs):
             'partNumber': json_data.get('partNumber', ''),
             'generalImages': json_data.get('generalImages', ''),
             'correctiveActions': json_data.get('correctiveActions', ''),
-            'createdAt': json_data.get('createdAt', {}).get('_seconds', ''),
             'processAt': json_data.get('processAt', {}).get('_seconds', ''),
             'finalizedAt': json_data.get('finalizedAt', {}).get('_seconds', ''),
             'tracingAt': json_data.get('tracingAt', {}).get('_seconds', ''),
             'createdBy': json_data.get('createdBy', {}).get('email', ''),
-            'specialist': json_data.get('specialist', '')
+            'specialist': json_data.get('specialist', ''),
+            'createdAt': json_data.get('createdAt', {}).get('_seconds', ''),
         }
         return pd.Series(data)
     
@@ -147,7 +147,7 @@ def dsp_load_data(**kwargs):
     df_parsed = df['json_data'].apply(parse_json)
     print(df_parsed.head())
     #parsed_df = pd.concat(df['json_data'].apply(parse_json).tolist(), ignore_index=True)
-    parsed_df = parsed_df.reset_index(drop=True)
+    #parsed_df = parsed_df.reset_index(drop=True)
     parsed_df= df[['timestamp', 'index']].join([parsed_df])
     parsed_df.sort_values(['timestamp', 'id'], ascending=[False, True], inplace=True)
     parsed_df['finalizedAt'] = parsed_df['finalizedAt'].fillna(0)
