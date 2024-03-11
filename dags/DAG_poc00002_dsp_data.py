@@ -134,7 +134,7 @@ def dsp_load_data(**kwargs):
             'finalizedAt': json_data.get('finalizedAt', {}).get('_seconds', ''),
             'tracingAt': json_data.get('tracingAt', {}).get('_seconds', ''),
             'createdBy': json_data.get('createdBy', {}).get('email', ''),
-            'specialist': json_data.get('specialist', {}).get('name', '')
+            'specialist': json_data.get('specialist', '')
         }
         return pd.Series(data)
     
@@ -194,7 +194,7 @@ with DAG(nameDAG,
          default_args = default_args,
          catchup = False,  # Ver caso catchup = True
          max_active_runs = 3,
-         schedule_interval = "0 3 * * *") as dag: # schedule_interval = None # Caso sin trigger automático | schedule_interval = "0 12 * * *" | "0,2 12 * * *"
+         schedule_interval = "0 10 * * *") as dag: # schedule_interval = None # Caso sin trigger automático | schedule_interval = "0 12 * * *" | "0,2 12 * * *"
 
     # FUENTE: CRONTRAB: https://crontab.guru/
     #############################################################
