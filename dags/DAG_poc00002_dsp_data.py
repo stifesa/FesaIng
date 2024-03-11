@@ -113,7 +113,31 @@ def dsp_load_data(**kwargs):
         ]), True)
     ])
     def parse_json(x):
-        return pd.json_normalize(json.loads(x))
+        json_data = json.loads(x)
+    
+        # Extraer los campos deseados del JSON
+        data = {
+            'workOrder': json_data.get('workOrder', ''),
+            'id': json_data.get('id', ''),
+            'eventType': json_data.get('eventType', ''),
+            'state': json_data.get('state', ''),
+            'workShop': json_data.get('workShop', ''),
+            'miningOperation': json_data.get('miningOperation', ''),
+            'packageNumber': json_data.get('packageNumber', ''),
+            'question1': json_data.get('question1', ''),
+            'component': json_data.get('component', ''),
+            'partNumber': json_data.get('partNumber', ''),
+            'generalImages': json_data.get('generalImages', ''),
+            'correctiveActions': json_data.get('correctiveActions', ''),
+            'createdAt': json_data.get('createdAt', {}).get('_seconds', ''),
+            'processAt': json_data.get('processAt', {}).get('_seconds', ''),
+            'finalizedAt': json_data.get('finalizedAt', {}).get('_seconds', ''),
+            'tracingAt': json_data.get('tracingAt', {}).get('_seconds', ''),
+            'reportingWorkshop': json_data.get('reportingWorkshop', {}).get('workshopName', ''),
+            'createdBy': json_data.get('createdBy', {}).get('email', ''),
+            'specialist': json_data.get('specialist', {}).get('name', '')
+        }
+        return pd.Series(data)
     
     df = client.query(sql).to_dataframe()
     # Realiza transformaciones en el DataFrame
@@ -123,16 +147,16 @@ def dsp_load_data(**kwargs):
     df['json_data'] = df['data']
     spark_df = spark.createDataFrame(df)
     print(spark_df.head())
-    df_parsed = spark_df.withColumn("parsed_data", from_json(col("json_data"), json_schema))
+    df_parsed = df['json_data'].apply(parse_json)
     print(df_parsed.head())
     #parsed_df = pd.concat(df['json_data'].apply(parse_json).tolist(), ignore_index=True)
     #parsed_df = parsed_df.reset_index(drop=True)
-    #parsed_df= df[['timestamp', 'index']].join([parsed_df])
-    #parsed_df.sort_values(['timestamp', 'id'], ascending=[False, True], inplace=True)
-    #parsed_df['finalizedAt._seconds'] = parsed_df['finalizedAt._seconds'].fillna(0)
-    #parsed_df['tracingAt._seconds'] = parsed_df['tracingAt._seconds'].fillna(0)
-    #parsed_df['processAt._seconds'] = parsed_df['processAt._seconds'].fillna(0)
-    #parsed_df['creacion'] = pd.to_datetime(parsed_df['createdAt._seconds'], unit='s')
+    parsed_df= df[['timestamp', 'index']].join([parsed_df])
+    parsed_df.sort_values(['timestamp', 'id'], ascending=[False, True], inplace=True)
+    parsed_df['finalizedAt'] = parsed_df['finalizedAt'].fillna(0)
+    parsed_df['tracingAt'] = parsed_df['tracingAt'].fillna(0)
+    parsed_df['processAt'] = parsed_df['processAt'].fillna(0)
+    #parsed_df['creacion'] = pd.to_datetime(parsed_df['createdAt'], unit='s')
     #parsed_df['creacion'] = parsed_df['creacion'].dt.strftime("%d/%m/%Y %H:%M:%S")
     #parsed_df['finalizacion'] = pd.to_datetime(parsed_df['finalizedAt._seconds'], unit='s')
     #parsed_df['finalizacion'] = parsed_df['finalizacion'].dt.strftime("%d/%m/%Y %H:%M:%S")
