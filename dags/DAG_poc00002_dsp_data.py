@@ -127,7 +127,7 @@ def dsp_load_data(**kwargs):
     df_parsed = df['json_data'].apply(parse_json)
     
     #parsed_df = pd.concat(df['json_data'].apply(parse_json).tolist(), ignore_index=True)
-    df_final = df_final.reset_index(drop=True)
+    #df_final = df_final.reset_index(drop=True)
     df_final = pd.concat([df, df_parsed], axis=1)
     df_final.sort_values(['timestamp', 'id'], ascending=[False, True], inplace=True)
     df_final = pd.DataFrame(df_final)
