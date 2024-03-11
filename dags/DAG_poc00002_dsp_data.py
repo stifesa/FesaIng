@@ -158,9 +158,10 @@ def dsp_load_data(**kwargs):
     #parsed_df = parsed_df.reset_index(drop=True)
     df_final = pd.concat([df, df_parsed], axis=1)
     df_final.sort_values(['timestamp', 'id'], ascending=[False, True], inplace=True)
-    #parsed_df['finalizedAt'] = parsed_df['finalizedAt'].fillna(0)
-    #parsed_df['tracingAt'] = parsed_df['tracingAt'].fillna(0)
-    #parsed_df['processAt'] = parsed_df['processAt'].fillna(0)
+    df_final = pd.DataFrame(df_final)
+    df_final['finalizedAt'] = df_final['finalizedAt'].fillna(0)
+    df_final['tracingAt'] = df_final['tracingAt'].fillna(0)
+    df_final['processAt'] = df_final['processAt'].fillna(0)
     #parsed_df['creacion'] = pd.to_datetime(parsed_df['createdAt'], unit='s')
     #parsed_df['creacion'] = parsed_df['creacion'].dt.strftime("%d/%m/%Y %H:%M:%S")
     #parsed_df['finalizacion'] = pd.to_datetime(parsed_df['finalizedAt._seconds'], unit='s')
@@ -169,8 +170,8 @@ def dsp_load_data(**kwargs):
     #parsed_df['proceso_inicio'] = parsed_df['proceso_inicio'].dt.strftime("%d/%m/%Y %H:%M:%S")
     #parsed_df['seguimiento'] = pd.to_datetime(parsed_df['tracingAt._seconds'], unit='s')
     #parsed_df['seguimiento'] = parsed_df['seguimiento'].dt.strftime("%d/%m/%Y %H:%M:%S")
-    parsed_df['Rank'] = 1
-    parsed_df['Rank'] = parsed_df.groupby(['id'])['Rank'].cumsum()
+    #parsed_df['Rank'] = 1
+    #parsed_df['Rank'] = parsed_df.groupby(['id'])['Rank'].cumsum()
     #n_by_iddata = parsed_df.loc[(parsed_df.Rank == 1)]
     #quality=n_by_iddata[['id','eventType','state','timestamp','creacion','finalizacion','seguimiento','index','state','workOrder','workShop','partNumber','generalImages','miningOperation','specialist.name','enventDetail','analysis.observation','analysis.process','analysis.bahia','analysis.basicCause','analysis.responsable','analysis.causeFailure','analysis.responsibleWorkshop.workshopName','reportingWorkshop.workshopName','createdBy.email','correctiveActions','component','proceso_inicio','question1','packageNumber']]
     #quality.columns = ['id','TipoEvento','estado_final','Ultima_mod', 'Fecha_creacion','Fecha_fin','fecha_seguimiento', 'indice','estado','workorder','Taller','NumParte','Imagen','OperacionMin','Especialista','DetalleEvento','Observacion','Proceso','Bahia','CausaBasica','Responsable','CausaFalla','TallerResponable','TallerReporta','email_registro','AccionCorrectiva','component','proceso_inicio','question1','plaqueteo']
