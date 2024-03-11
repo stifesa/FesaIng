@@ -114,6 +114,12 @@ def dsp_load_data(**kwargs):
     ])
     def parse_json(x):
         json_data = json.loads(x)
+        def get_nested_value(d, key, subkey):
+            # Verificar si la clave principal existe y si tiene un subcampo
+            if key in d and isinstance(d[key], dict):
+                return d[key].get(subkey, '')
+            else:
+                return ''
     
         # Extraer los campos deseados del JSON
         data = {
@@ -134,7 +140,9 @@ def dsp_load_data(**kwargs):
             'tracingAt': json_data.get('tracingAt', {}).get('_seconds', ''),
             'createdBy': json_data.get('createdBy', {}).get('email', ''),
             'specialist': json_data.get('specialist', ''),
-            'createdAt': json_data.get('createdAt', {}).get('_seconds', ''),
+            'reportingWorkshop': get_nested_value(json_data, 'reportingWorkshop', 'workshopName'),
+            'specialist': get_nested_value(json_data, 'specialist', 'name'),
+            'createdAt': json_data.get('createdAt', {}).get('_seconds', '')
         }
         return pd.Series(data)
     
@@ -148,13 +156,13 @@ def dsp_load_data(**kwargs):
     print(df_parsed.head())
     #parsed_df = pd.concat(df['json_data'].apply(parse_json).tolist(), ignore_index=True)
     #parsed_df = parsed_df.reset_index(drop=True)
-    parsed_df= df[['timestamp', 'index']].join([parsed_df])
-    parsed_df.sort_values(['timestamp', 'id'], ascending=[False, True], inplace=True)
-    parsed_df['finalizedAt'] = parsed_df['finalizedAt'].fillna(0)
-    parsed_df['tracingAt'] = parsed_df['tracingAt'].fillna(0)
-    parsed_df['processAt'] = parsed_df['processAt'].fillna(0)
-    parsed_df['creacion'] = pd.to_datetime(parsed_df['createdAt'], unit='s')
-    parsed_df['creacion'] = parsed_df['creacion'].dt.strftime("%d/%m/%Y %H:%M:%S")
+    df_final = pd.concat([df, df_parsed], axis=1)
+    df_final.sort_values(['timestamp', 'id'], ascending=[False, True], inplace=True)
+    #parsed_df['finalizedAt'] = parsed_df['finalizedAt'].fillna(0)
+    #parsed_df['tracingAt'] = parsed_df['tracingAt'].fillna(0)
+    #parsed_df['processAt'] = parsed_df['processAt'].fillna(0)
+    #parsed_df['creacion'] = pd.to_datetime(parsed_df['createdAt'], unit='s')
+    #parsed_df['creacion'] = parsed_df['creacion'].dt.strftime("%d/%m/%Y %H:%M:%S")
     #parsed_df['finalizacion'] = pd.to_datetime(parsed_df['finalizedAt._seconds'], unit='s')
     #parsed_df['finalizacion'] = parsed_df['finalizacion'].dt.strftime("%d/%m/%Y %H:%M:%S")
     #parsed_df['proceso_inicio'] = pd.to_datetime(parsed_df['processAt._seconds'], unit='s')
