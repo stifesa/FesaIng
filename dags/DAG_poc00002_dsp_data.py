@@ -145,11 +145,10 @@ def dsp_load_data(**kwargs):
     df['index'] = np.arange(0, len(df))+1
     #df['json_data'] = '{"' + df['index'].astype(str) + '":'+ df['data'] + "}"
     df['json_data'] = df['data']
-    print(spark_df.head())
     df_parsed = df['json_data'].apply(parse_json)
     print(df_parsed.head())
     #parsed_df = pd.concat(df['json_data'].apply(parse_json).tolist(), ignore_index=True)
-    #parsed_df = parsed_df.reset_index(drop=True)
+    parsed_df = parsed_df.reset_index(drop=True)
     parsed_df= df[['timestamp', 'index']].join([parsed_df])
     parsed_df.sort_values(['timestamp', 'id'], ascending=[False, True], inplace=True)
     parsed_df['finalizedAt'] = parsed_df['finalizedAt'].fillna(0)
@@ -163,8 +162,8 @@ def dsp_load_data(**kwargs):
     #parsed_df['proceso_inicio'] = parsed_df['proceso_inicio'].dt.strftime("%d/%m/%Y %H:%M:%S")
     #parsed_df['seguimiento'] = pd.to_datetime(parsed_df['tracingAt._seconds'], unit='s')
     #parsed_df['seguimiento'] = parsed_df['seguimiento'].dt.strftime("%d/%m/%Y %H:%M:%S")
-    #parsed_df['Rank'] = 1
-    #parsed_df['Rank'] = parsed_df.groupby(['id'])['Rank'].cumsum()
+    parsed_df['Rank'] = 1
+    parsed_df['Rank'] = parsed_df.groupby(['id'])['Rank'].cumsum()
     #n_by_iddata = parsed_df.loc[(parsed_df.Rank == 1)]
     #quality=n_by_iddata[['id','eventType','state','timestamp','creacion','finalizacion','seguimiento','index','state','workOrder','workShop','partNumber','generalImages','miningOperation','specialist.name','enventDetail','analysis.observation','analysis.process','analysis.bahia','analysis.basicCause','analysis.responsable','analysis.causeFailure','analysis.responsibleWorkshop.workshopName','reportingWorkshop.workshopName','createdBy.email','correctiveActions','component','proceso_inicio','question1','packageNumber']]
     #quality.columns = ['id','TipoEvento','estado_final','Ultima_mod', 'Fecha_creacion','Fecha_fin','fecha_seguimiento', 'indice','estado','workorder','Taller','NumParte','Imagen','OperacionMin','Especialista','DetalleEvento','Observacion','Proceso','Bahia','CausaBasica','Responsable','CausaFalla','TallerResponable','TallerReporta','email_registro','AccionCorrectiva','component','proceso_inicio','question1','plaqueteo']
