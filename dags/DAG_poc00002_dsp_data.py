@@ -145,7 +145,6 @@ def dsp_load_data(**kwargs):
     df['index'] = np.arange(0, len(df))+1
     #df['json_data'] = '{"' + df['index'].astype(str) + '":'+ df['data'] + "}"
     df['json_data'] = df['data']
-    spark_df = spark.createDataFrame(df)
     print(spark_df.head())
     df_parsed = df['json_data'].apply(parse_json)
     print(df_parsed.head())
@@ -156,8 +155,8 @@ def dsp_load_data(**kwargs):
     parsed_df['finalizedAt'] = parsed_df['finalizedAt'].fillna(0)
     parsed_df['tracingAt'] = parsed_df['tracingAt'].fillna(0)
     parsed_df['processAt'] = parsed_df['processAt'].fillna(0)
-    #parsed_df['creacion'] = pd.to_datetime(parsed_df['createdAt'], unit='s')
-    #parsed_df['creacion'] = parsed_df['creacion'].dt.strftime("%d/%m/%Y %H:%M:%S")
+    parsed_df['creacion'] = pd.to_datetime(parsed_df['createdAt'], unit='s')
+    parsed_df['creacion'] = parsed_df['creacion'].dt.strftime("%d/%m/%Y %H:%M:%S")
     #parsed_df['finalizacion'] = pd.to_datetime(parsed_df['finalizedAt._seconds'], unit='s')
     #parsed_df['finalizacion'] = parsed_df['finalizacion'].dt.strftime("%d/%m/%Y %H:%M:%S")
     #parsed_df['proceso_inicio'] = pd.to_datetime(parsed_df['processAt._seconds'], unit='s')
