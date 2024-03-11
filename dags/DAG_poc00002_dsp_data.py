@@ -127,7 +127,7 @@ def dsp_load_data(**kwargs):
     df_parsed = df['json_data'].apply(parse_json)
     
     #parsed_df = pd.concat(df['json_data'].apply(parse_json).tolist(), ignore_index=True)
-    #parsed_df = parsed_df.reset_index(drop=True)
+    df_final = df_final.reset_index(drop=True)
     df_final = pd.concat([df, df_parsed], axis=1)
     df_final.sort_values(['timestamp', 'id'], ascending=[False, True], inplace=True)
     df_final = pd.DataFrame(df_final)
@@ -148,7 +148,7 @@ def dsp_load_data(**kwargs):
     print(n_by_iddata.head())
     quality=n_by_iddata[['id','eventType','state','timestamp','creacion','finalizacion','seguimiento','index','state','workOrder','workShop','partNumber','generalImages','miningOperation','specialist','enventDetail','observation','process','bahia','basicCause','responsable','causeFailure','reportingWorkshop','createdBy_email','correctiveActions','component','proceso_inicio','question1','packageNumber','responsibleWorkshop']]
     quality.columns = ['id','TipoEvento','estado_final','Ultima_mod', 'Fecha_creacion','Fecha_fin','fecha_seguimiento', 'indice','estado','workorder','Taller','NumParte','Imagen','OperacionMin','Especialista','DetalleEvento','Observacion','Proceso','Bahia','CausaBasica','Responsable','CausaFalla','TallerReporta','email_registro','AccionCorrectiva','component','proceso_inicio','question1','plaqueteo','responsibleWorkshop']
-
+    quality = quality.drop_duplicates()
     # Define el nombre del archivo en GCS y el path local para guardar el archivo
     DATASET_NAME = 'raw_st'
     TABLE_NAME = 'dsp_calidad'
@@ -176,7 +176,7 @@ with DAG(nameDAG,
          default_args = default_args,
          catchup = False,  # Ver caso catchup = True
          max_active_runs = 3,
-         schedule_interval = "0 */6 * * *") as dag: # schedule_interval = None # Caso sin trigger automático | schedule_interval = "0 12 * * *" | "0,2 12 * * *"
+         schedule_interval = "0 */4 * * *") as dag: # schedule_interval = None # Caso sin trigger automático | schedule_interval = "0 12 * * *" | "0,2 12 * * *"
 
     # FUENTE: CRONTRAB: https://crontab.guru/
     #############################################################
