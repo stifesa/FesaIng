@@ -156,6 +156,11 @@ def dsp_load_data(**kwargs):
     quality.reset_index(inplace=True, drop=True)
     quality = quality.astype(str)
 
+    #
+    sqltrunc = """
+    TRUNCATE TABLE `ferreyros-mvp.raw_st.dsp_calidad`
+    """
+    client.query(sqltrunc)
     # Carga el archivo CSV desde GCS a BigQuery
     load_job = client.load_table_from_dataframe(quality, table_id)
     load_job.result()
