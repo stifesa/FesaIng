@@ -118,6 +118,62 @@ def dsp_load_data(**kwargs):
         }
         return pd.Series(data)
     
+    def correctivos_json(x):
+        json_data = json.loads(x)
+        def get_nested_value(d, key, subkey):
+            # Verificar si la clave principal existe y si tiene un subcampo
+            if key in d and isinstance(d[key], dict):
+                return d[key].get(subkey, '')
+            else:
+                return ''
+        def get_deep_nested_value(d, keys):
+        # Inicializar el valor temporal con el diccionario completo
+            temp = d
+            # Iterar a través de las claves para acceder al valor deseado
+            for key in keys:
+                # Verificar si la clave existe y si el valor asociado es un diccionario
+                if key in temp and isinstance(temp[key], dict):
+                    temp = temp[key]  # Acceder al siguiente nivel
+                else:
+                    return ''  # Retornar vacío si alguna clave intermedia no existe
+            return temp  # Retornar el valor final si todas las claves existen
+    
+        # Extraer los campos deseados del JSON
+        data = {
+            'workOrder': json_data.get('workOrder', ''),
+            'responsibleWorkshop': get_deep_nested_value(json_data, ['analysis', 'responsibleWorkshop', 'workshopName']),
+            'id': json_data.get('id', ''),
+            'eventType': json_data.get('eventType', ''),
+            'state': json_data.get('state', ''),
+            'workShop': json_data.get('workShop', ''),
+            'miningOperation': json_data.get('miningOperation', ''),
+            'packageNumber': json_data.get('packageNumber', ''),
+            'question1': json_data.get('question1', ''),
+            'enventDetail': json_data.get('enventDetail', ''),
+            'component': json_data.get('component', ''),
+            'partNumber': json_data.get('partNumber', ''),
+            'generalImages': json_data.get('generalImages', ''),
+            'CorrectiveAction': get_deep_nested_value(json_data, ['correctiveActions', 'corrective']),
+            'CorrectiveCreation': get_deep_nested_value(json_data, ['correctiveActions', 'createdAt','_seconds']),
+            'CorrectiveFinalized': get_deep_nested_value(json_data, ['correctiveActions', 'closedAt','_seconds']),
+            'CorrectiveResponsable': get_deep_nested_value(json_data, ['correctiveActions', 'name']),
+            'observation': json_data.get('analysis', {}).get('observation', ''),
+            'process': json_data.get('analysis', {}).get('process', ''),
+            'bahia': json_data.get('analysis', {}).get('bahia', ''),
+            'basicCause': json_data.get('analysis', {}).get('basicCause', ''),
+            'responsable': json_data.get('analysis', {}).get('responsable', ''),
+            'causeFailure': json_data.get('analysis', {}).get('causeFailure', ''),
+            'processAt': json_data.get('processAt', {}).get('_seconds', ''),
+            'finalizedAt': json_data.get('finalizedAt', {}).get('_seconds', ''),
+            'tracingAt': json_data.get('tracingAt', {}).get('_seconds', ''),
+            'createdBy_email': json_data.get('createdBy', {}).get('email', ''),
+            'specialist': json_data.get('specialist', ''),
+            'reportingWorkshop': get_nested_value(json_data, 'reportingWorkshop', 'workshopName'),
+            'specialist': get_nested_value(json_data, 'specialist', 'name'),
+            'createdAt': json_data.get('createdAt', {}).get('_seconds', '')
+        }
+        return pd.Series(data)
+
     df = client.query(sql).to_dataframe()
     # Realiza transformaciones en el DataFrame
     df = df.reset_index(drop=True)
@@ -155,6 +211,15 @@ def dsp_load_data(**kwargs):
     table_id = f"{project}.{DATASET_NAME}.{TABLE_NAME}"
     quality.reset_index(inplace=True, drop=True)
     quality = quality.astype(str)
+
+    #Lectura de datos de BD AFA
+    gc2 = gspread.authorize(credentials)
+    bdafa = gc2.open_by_key('1XPiLhawZzAIHiplJQp5olCTcPkPvXGwXo2My4BYVduc')
+    sheet_instance1=bdafa.get_worksheet(0)
+    afa = sheet_instance1.get_all_records()
+    afa = pd.DataFrame.from_dict(afa)
+    print(afa.head(4))
+
 
     #
     sqltrunc = """
