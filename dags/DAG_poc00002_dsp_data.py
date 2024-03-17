@@ -12,6 +12,7 @@ import pandas as pd
 import json
 import os
 import io
+import gspread
 import logging
 from google.cloud import bigquery
 from google.cloud import storage
@@ -31,9 +32,7 @@ owner             = 'ALNETAHU'
 email             = ['astroboticapps@gmail.com']
 GBQ_CONNECTION_ID = 'bigquery_default'
 service_account_path = 'gs://st_raw/crdfesa/ferreyros-mvp-3cf04ce5fdcc.json'
-spark = SparkSession.builder \
-    .appName("Json Parse") \
-    .getOrCreate()
+
 #######################################################################################
 
 def dsp_load_data(**kwargs):
