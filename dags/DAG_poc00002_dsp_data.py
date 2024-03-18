@@ -221,7 +221,9 @@ def dsp_load_data(**kwargs):
     afa = sheet_instance1.get_all_records()
     afa = pd.DataFrame.from_dict(afa)
     print(afa.head(4))
-
+    bdafa= afa[['N° CASO PAT-AFA','ESTADO','INICIO DESARMADO','EMISION','ESTADO','OT MAIN','TALLER','PN FALLA','ANALISTA','Modo de Falla','Causa','CARGO TÉCNICO AFA','TALLER','COMPONENTE','AGRUPADOR']]
+    bdafa.columns = ['id','estado_final','Fecha_creacion','Fecha_fin','estado','workorder','Taller','NumParte','Especialista','DetalleEvento','CausaBasica','Responsable','TallerReporta','component','responsibleWorkshop']
+    oportunidades = pd.concat([quality, bdafa], ignore_index=True)
 
     #
     sqltrunc = """
@@ -229,7 +231,7 @@ def dsp_load_data(**kwargs):
     """
     client.query(sqltrunc)
     # Carga el archivo CSV desde GCS a BigQuery
-    load_job = client.load_table_from_dataframe(quality, table_id)
+    load_job = client.load_table_from_dataframe(oportunidades, table_id)
     load_job.result()
 
 default_args = {
