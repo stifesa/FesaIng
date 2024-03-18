@@ -215,6 +215,7 @@ def dsp_load_data(**kwargs):
     gc2 = gspread.authorize(credentials)
     bdafa = gc2.open_by_key('1XPiLhawZzAIHiplJQp5olCTcPkPvXGwXo2My4BYVduc')
     sheet_list = bdafa.worksheets()
+    print(sheet_list)
     sheet_index = sheet_list.index('BD_AFAS')
     sheet_instance1 = bdafa.get_worksheet(sheet_index)
     #sheet_instance1=bdafa.get_worksheet('BD_AFAS')
