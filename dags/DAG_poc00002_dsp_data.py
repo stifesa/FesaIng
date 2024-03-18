@@ -214,7 +214,7 @@ def dsp_load_data(**kwargs):
     #Lectura de datos de BD AFA
     gc2 = gspread.authorize(credentials)
     bdafa = gc2.open_by_key('1XPiLhawZzAIHiplJQp5olCTcPkPvXGwXo2My4BYVduc')
-    sheet_instance1=bdafa.get_worksheet(0)
+    sheet_instance1=bdafa.get_worksheet('BD_AFAS')
     afa = sheet_instance1.get_all_records()
     afa = pd.DataFrame.from_dict(afa)
     print(afa.head(4))
