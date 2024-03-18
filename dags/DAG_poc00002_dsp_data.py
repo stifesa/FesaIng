@@ -216,7 +216,7 @@ def dsp_load_data(**kwargs):
     bdafa = gc2.open_by_key('1XPiLhawZzAIHiplJQp5olCTcPkPvXGwXo2My4BYVduc')
     sheet_list = bdafa.worksheets()
     print(sheet_list)
-    sheet_instance1 = bspreadsheet.get_worksheet(902604264)
+    sheet_instance1 = spreadsheet.get_worksheet(902604264)
     #sheet_instance1=bdafa.get_worksheet('BD_AFAS')
     afa = sheet_instance1.get_all_records()
     afa = pd.DataFrame.from_dict(afa)
