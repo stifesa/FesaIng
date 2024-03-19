@@ -200,7 +200,7 @@ def dsp_load_data(**kwargs):
     quality['AccionCorrectiva'] = quality['AccionCorrectiva'].str.replace('[', '').str.replace(']', '')
 
     correctivos = extract_values(quality, 'AccionCorrectiva')
-    print(correctivos.head(4))
+    print(correctivos.head(7))
     #correctivos[['corrective', 'created_at', 'closed_at']] = pd.DataFrame(correctivos['parsed_acciones'].tolist(), index=correctivos.index)
     #print(correctivos[['corrective']].head())
     quality = quality.astype(str)
