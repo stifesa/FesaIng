@@ -117,76 +117,49 @@ def dsp_load_data(**kwargs):
         }
         return pd.Series(data)
     
-    def parse_accion_correctiva(row):
-        acciones = row['AccionCorrectiva']
-        parsed_data = []
-
-        for accion in acciones:
-            corrective = accion.get('corrective', '')
-            created_at = accion.get('createdAt', {}).get('_seconds', None)
-            closed_at = accion.get('closedAt', {}).get('_seconds', None)
-
-            parsed_data.append((corrective, created_at, closed_at))
-
-        return parsed_data
+    def get_nested_value(d, key, subkey):
+        # Verificar si d es un diccionario, si la clave principal existe y si tiene un subcampo
+        if isinstance(d, dict) and key in d and isinstance(d[key], dict):
+            return d[key].get(subkey, '')
+        else:
+            return ''
     
-    
-    
-    def correctivos_json(x):
-        json_data = json.loads(x)
-        def get_nested_value(d, key, subkey):
-            # Verificar si la clave principal existe y si tiene un subcampo
-            if key in d and isinstance(d[key], dict):
-                return d[key].get(subkey, '')
+    def get_deep_nested_value(d, keys):
+        # Verificar si d es un diccionario antes de iniciar
+        if not isinstance(d, dict):
+            return ''
+        temp = d
+        for key in keys:
+            if key in temp and isinstance(temp[key], dict):
+                temp = temp[key]
             else:
                 return ''
-        def get_deep_nested_value(d, keys):
-        # Inicializar el valor temporal con el diccionario completo
-            temp = d
-            # Iterar a través de las claves para acceder al valor deseado
-            for key in keys:
-                # Verificar si la clave existe y si el valor asociado es un diccionario
-                if key in temp and isinstance(temp[key], dict):
-                    temp = temp[key]  # Acceder al siguiente nivel
-                else:
-                    return ''  # Retornar vacío si alguna clave intermedia no existe
-            return temp  # Retornar el valor final si todas las claves existen
-    
-        # Extraer los campos deseados del JSON
-        data = {
-            'workOrder': json_data.get('workOrder', ''),
-            'responsibleWorkshop': get_deep_nested_value(json_data, ['analysis', 'responsibleWorkshop', 'workshopName']),
-            'id': json_data.get('id', ''),
-            'eventType': json_data.get('eventType', ''),
-            'state': json_data.get('state', ''),
-            'workShop': json_data.get('workShop', ''),
-            'miningOperation': json_data.get('miningOperation', ''),
-            'packageNumber': json_data.get('packageNumber', ''),
-            'question1': json_data.get('question1', ''),
-            'enventDetail': json_data.get('enventDetail', ''),
-            'component': json_data.get('component', ''),
-            'partNumber': json_data.get('partNumber', ''),
-            'generalImages': json_data.get('generalImages', ''),
-            'CorrectiveAction': get_deep_nested_value(json_data, ['correctiveActions', 'corrective']),
-            'CorrectiveCreation': get_deep_nested_value(json_data, ['correctiveActions', 'createdAt','_seconds']),
-            'CorrectiveFinalized': get_deep_nested_value(json_data, ['correctiveActions', 'closedAt','_seconds']),
-            'CorrectiveResponsable': get_deep_nested_value(json_data, ['correctiveActions', 'name']),
-            'observation': json_data.get('analysis', {}).get('observation', ''),
-            'process': json_data.get('analysis', {}).get('process', ''),
-            'bahia': json_data.get('analysis', {}).get('bahia', ''),
-            'basicCause': json_data.get('analysis', {}).get('basicCause', ''),
-            'responsable': json_data.get('analysis', {}).get('responsable', ''),
-            'causeFailure': json_data.get('analysis', {}).get('causeFailure', ''),
-            'processAt': json_data.get('processAt', {}).get('_seconds', ''),
-            'finalizedAt': json_data.get('finalizedAt', {}).get('_seconds', ''),
-            'tracingAt': json_data.get('tracingAt', {}).get('_seconds', ''),
-            'createdBy_email': json_data.get('createdBy', {}).get('email', ''),
-            'specialist': json_data.get('specialist', ''),
-            'reportingWorkshop': get_nested_value(json_data, 'reportingWorkshop', 'workshopName'),
-            'specialist': get_nested_value(json_data, 'specialist', 'name'),
-            'createdAt': json_data.get('createdAt', {}).get('_seconds', '')
-        }
-        return pd.Series(data)
+        return temp
+
+    def extract_values(df, column_name):
+        # Función para extraer valores de un registro que puede ser un diccionario o una lista de diccionarios
+        def extract_from_record(record):
+            if isinstance(record, list):
+                # Si el registro es una lista, aplicar la extracción a cada elemento y combinar los resultados
+                return [extract_from_dict(item) for item in record if isinstance(item, dict)]
+            elif isinstance(record, dict):
+                # Si el registro es un diccionario, extraer los valores directamente
+                return extract_from_dict(record)
+            else:
+                # Si el registro no es ni una lista ni un diccionario, retornar valores predeterminados
+                return ''
+
+        # Función para extraer valores de un diccionario individual
+        def extract_from_dict(d):
+            corrective = d.get('corrective', '')
+            closed_at_seconds = get_nested_value(d, 'closedAt', '_seconds')
+            created_at_seconds = get_nested_value(d, 'createdAt', '_seconds')
+            return corrective, created_at_seconds, closed_at_seconds
+
+        # Aplicar la función de extracción a la columna especificada y almacenar el resultado en una nueva columna
+        df['extracted_values'] = df[column_name].apply(extract_from_record)
+
+        return df
 
     df = client.query(sql).to_dataframe()
     # Realiza transformaciones en el DataFrame
@@ -223,9 +196,11 @@ def dsp_load_data(**kwargs):
     TABLE_NAME = 'dsp_calidad'
     table_id = f"{project}.{DATASET_NAME}.{TABLE_NAME}"
     quality.reset_index(inplace=True, drop=True)
-    correctivos = quality
-    print(correctivos['AccionCorrectiva'].head())
-    #correctivos['parsed_acciones'] = correctivos.apply(parse_accion_correctiva, axis=1)
+    # Remove square brackets from the 'col1' column
+    quality['AccionCorrectiva'] = quality['AccionCorrectiva'].str.replace('[', '').str.replace(']', '')
+
+    correctivos = extract_values(quality, 'AccionCorrectiva')
+    print(correctivos.head(4))
     #correctivos[['corrective', 'created_at', 'closed_at']] = pd.DataFrame(correctivos['parsed_acciones'].tolist(), index=correctivos.index)
     #print(correctivos[['corrective']].head())
     quality = quality.astype(str)
@@ -239,7 +214,6 @@ def dsp_load_data(**kwargs):
     #sheet_instance1=bdafa.get_worksheet('BD_AFAS')
     afa = sheet_instance1.get_all_records()
     afa = pd.DataFrame.from_dict(afa)
-    print(afa.head(4))
     bdafa= afa[['N° CASO PAT-AFA','ESTADO','INICIO DESARMADO','EMISION','ESTADO','OT MAIN','TALLER','PN FALLA','ANALISTA','Modo de Falla','Causa','CARGO TÉCNICO AFA','TALLER','COMPONENTE','AGRUPADOR']]
     bdafa.columns = ['id','estado_final','Fecha_creacion','Fecha_fin','estado','workorder','Taller','NumParte','Especialista','DetalleEvento','CausaBasica','Responsable','TallerReporta','component','responsibleWorkshop']
     bdafa['TipoEvento'] = 'SNC AFA'
