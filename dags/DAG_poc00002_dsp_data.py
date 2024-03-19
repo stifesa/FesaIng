@@ -117,6 +117,21 @@ def dsp_load_data(**kwargs):
         }
         return pd.Series(data)
     
+    def parse_accion_correctiva(row):
+        acciones = row['correctiveActions']
+        parsed_data = []
+
+        for accion in acciones:
+            corrective = accion.get('corrective', '')
+            created_at = accion.get('createdAt', {}).get('_seconds', None)
+            closed_at = accion.get('closedAt', {}).get('_seconds', None)
+
+            parsed_data.append((corrective, created_at, closed_at))
+
+        return parsed_data
+    
+    
+    
     def correctivos_json(x):
         json_data = json.loads(x)
         def get_nested_value(d, key, subkey):
@@ -181,7 +196,6 @@ def dsp_load_data(**kwargs):
     df['json_data'] = df['data']
     df_parsed = df['json_data'].apply(parse_json)
     
-    #parsed_df = pd.concat(df['json_data'].apply(parse_json).tolist(), ignore_index=True)
     #df_final = df_final.reset_index(drop=True)
     df_final = pd.concat([df, df_parsed], axis=1)
     df_final.sort_values(['timestamp', 'id'], ascending=[False, True], inplace=True)
@@ -209,6 +223,10 @@ def dsp_load_data(**kwargs):
     TABLE_NAME = 'dsp_calidad'
     table_id = f"{project}.{DATASET_NAME}.{TABLE_NAME}"
     quality.reset_index(inplace=True, drop=True)
+    correctivos = quality
+    correctivos['parsed_acciones'] = correctivos.apply(parse_accion_correctiva, axis=1)
+    print(correctivos[['parsed_acciones']])
+    #correctivos[['corrective', 'created_at', 'closed_at']] = pd.DataFrame(correctivos['parsed_acciones'].tolist(), index=correctivos.index)
     quality = quality.astype(str)
 
     #Lectura de datos de BD AFA
