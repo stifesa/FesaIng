@@ -224,9 +224,10 @@ def dsp_load_data(**kwargs):
     table_id = f"{project}.{DATASET_NAME}.{TABLE_NAME}"
     quality.reset_index(inplace=True, drop=True)
     correctivos = quality
-    correctivos['parsed_acciones'] = correctivos.apply(parse_accion_correctiva, axis=1)
-    correctivos[['corrective', 'created_at', 'closed_at']] = pd.DataFrame(correctivos['parsed_acciones'].tolist(), index=correctivos.index)
-    print(correctivos[['corrective']].head())
+    print(correctivos['AccionCorrectiva'].head())
+    #correctivos['parsed_acciones'] = correctivos.apply(parse_accion_correctiva, axis=1)
+    #correctivos[['corrective', 'created_at', 'closed_at']] = pd.DataFrame(correctivos['parsed_acciones'].tolist(), index=correctivos.index)
+    #print(correctivos[['corrective']].head())
     quality = quality.astype(str)
 
     #Lectura de datos de BD AFA
