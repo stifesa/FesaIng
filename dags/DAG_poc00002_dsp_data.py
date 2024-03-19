@@ -118,7 +118,7 @@ def dsp_load_data(**kwargs):
         return pd.Series(data)
     
     def parse_accion_correctiva(row):
-        acciones = row['correctiveActions']
+        acciones = row['AccionCorrectiva']
         parsed_data = []
 
         for accion in acciones:
@@ -225,8 +225,8 @@ def dsp_load_data(**kwargs):
     quality.reset_index(inplace=True, drop=True)
     correctivos = quality
     correctivos['parsed_acciones'] = correctivos.apply(parse_accion_correctiva, axis=1)
-    print(correctivos[['parsed_acciones']])
-    #correctivos[['corrective', 'created_at', 'closed_at']] = pd.DataFrame(correctivos['parsed_acciones'].tolist(), index=correctivos.index)
+    correctivos[['corrective', 'created_at', 'closed_at']] = pd.DataFrame(correctivos['parsed_acciones'].tolist(), index=correctivos.index)
+    print(correctivos[['corrective']].head())
     quality = quality.astype(str)
 
     #Lectura de datos de BD AFA
