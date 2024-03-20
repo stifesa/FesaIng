@@ -188,7 +188,7 @@ def dsp_load_data(**kwargs):
     quality.reset_index(inplace=True, drop=True)
     # Remove square brackets from the 'col1' column
     #quality['AccionCorrectiva'] = quality['AccionCorrectiva'].str.replace('[', '').str.replace(']', '')
-    print(quality[quality['AccionCorrectiva']])
+    print(quality['AccionCorrectiva'])
     correctivos = quality[quality['AccionCorrectiva'].apply(lambda x: isinstance(x, str) and x != '[]' and x != 'nan')]
     print(correctivos.head())
     print(quality.head(2))
