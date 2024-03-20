@@ -200,7 +200,7 @@ def dsp_load_data(**kwargs):
     #quality['AccionCorrectiva'] = quality['AccionCorrectiva'].str.replace('[', '').str.replace(']', '')
 
     correctivos = extract_values(quality, 'AccionCorrectiva')
-    print(correctivos.head(7))
+    print(correctivos[['id']=='DQfEqatZDaXEo4nmHoCP'].head())
     #correctivos[['corrective', 'created_at', 'closed_at']] = pd.DataFrame(correctivos['parsed_acciones'].tolist(), index=correctivos.index)
     #print(correctivos[['corrective']].head())
     quality = quality.astype(str)
@@ -209,7 +209,6 @@ def dsp_load_data(**kwargs):
     gc2 = gspread.authorize(credentials)
     bdafa = gc2.open_by_key('1XPiLhawZzAIHiplJQp5olCTcPkPvXGwXo2My4BYVduc')
     sheet_list = bdafa.worksheets()
-    print(sheet_list)
     sheet_instance1 = bdafa.get_worksheet_by_id(902604264)
     #sheet_instance1=bdafa.get_worksheet('BD_AFAS')
     afa = sheet_instance1.get_all_records()
