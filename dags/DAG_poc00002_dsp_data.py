@@ -152,6 +152,12 @@ def dsp_load_data(**kwargs):
             print("Error:", e)
             return []
 
+    def replace_quotes(value):
+        if isinstance(value, str):
+            return value.replace("'", '"')
+        else:
+            return value
+
     df = client.query(sql).to_dataframe()
     # Realiza transformaciones en el DataFrame
     df = df.reset_index(drop=True)
@@ -188,7 +194,7 @@ def dsp_load_data(**kwargs):
     quality.reset_index(inplace=True, drop=True)
     # Remove square brackets from the 'col1' column
     #quality['AccionCorrectiva'] = quality['AccionCorrectiva'].str.replace('[', '').str.replace(']', '')
-    quality['AccionCorrectiva'] = quality['AccionCorrectiva'].str.replace("'", '"')
+    quality['AccionCorrectiva'] = quality['AccionCorrectiva'].apply(replace_quotes)
     print(type(quality.loc[0, 'AccionCorrectiva']))
     print(quality['AccionCorrectiva'])
     correctivos = quality[quality['AccionCorrectiva'].apply(lambda x: isinstance(x, str) and x != '[]' and x != 'nan')]
