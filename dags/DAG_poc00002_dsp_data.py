@@ -142,8 +142,9 @@ def dsp_load_data(**kwargs):
             if isinstance(data, list) and len(data) > 0:  # Verificar si es una lista no vacía
                 values = []
                 for item in data:
+                    print("Item:", item)  # Imprimir el item para debug
                     if 'corrective' in item:
-                        corrective = item['corrective']
+                        corrective = item.get('corrective', '')
                         closedAt = get_nested_value(item, 'closedAt', '_seconds')
                         createdAt = get_nested_value(item, 'createdAt', '_seconds')
                         values.append({'corrective': corrective, 'closedAt_seconds': closedAt, 'createdAt_seconds': createdAt})
@@ -151,6 +152,7 @@ def dsp_load_data(**kwargs):
             else:
                 return []
         except Exception as e:
+            print("Error:", e)  # Imprimir el error para debug
             return []
 
     df = client.query(sql).to_dataframe()
