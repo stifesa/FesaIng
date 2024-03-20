@@ -178,7 +178,6 @@ def dsp_load_data(**kwargs):
     df_final['Rank'] = 1
     df_final['Rank'] = df_final.groupby(['id'])['Rank'].cumsum()
     n_by_iddata = df_final.loc[(df_final.Rank == 1)]
-    print(n_by_iddata.head())
     quality=n_by_iddata[['id','eventType','state','timestamp','creacion','finalizacion','seguimiento','index','state','workOrder','workShop','partNumber','generalImages','miningOperation','specialist','enventDetail','observation','process','bahia','basicCause','responsable','causeFailure','reportingWorkshop','createdBy_email','correctiveActions','component','proceso_inicio','question1','packageNumber','responsibleWorkshop']]
     quality.columns = ['id','TipoEvento','estado_final','Ultima_mod', 'Fecha_creacion','Fecha_fin','fecha_seguimiento', 'indice','estado','workorder','Taller','NumParte','Imagen','OperacionMin','Especialista','DetalleEvento','Observacion','Proceso','Bahia','CausaBasica','Responsable','CausaFalla','TallerReporta','email_registro','AccionCorrectiva','component','proceso_inicio','question1','plaqueteo','responsibleWorkshop']
     #quality = quality.drop_duplicates()
@@ -189,7 +188,8 @@ def dsp_load_data(**kwargs):
     quality.reset_index(inplace=True, drop=True)
     # Remove square brackets from the 'col1' column
     #quality['AccionCorrectiva'] = quality['AccionCorrectiva'].str.replace('[', '').str.replace(']', '')
-    correctivos = quality
+    correctivos = quality[quality['AccionCorrectiva'].apply(lambda x: isinstance(x, str) and x != '[]' and x != 'nan')]
+    print(correctivos.head())
     correctivos['json_values'] = correctivos['AccionCorrectiva'].apply(extract_json_values)
     new_rows = []
     for i, row in correctivos.iterrows():
