@@ -138,23 +138,19 @@ def dsp_load_data(**kwargs):
 
     def extract_json_values(row):
         try:
-            data = json.loads(row)  # Convertir el string JSON a un diccionario
-            if isinstance(data, list) and len(data) > 0:  # Verificar si es una lista no vacía
-                values = []
-                for item in data:
-                    print("Item:", item)  # Imprimir el item para debug
-                    if 'corrective' in item:
-                        corrective = item.get('corrective', '')
-                        closedAt = get_nested_value(item, 'closedAt', '_seconds')
-                        createdAt = get_nested_value(item, 'createdAt', '_seconds')
-                        values.append({'corrective': corrective, 'closedAt_seconds': closedAt, 'createdAt_seconds': createdAt})
-                return values
-            else:
-                return []
+            data_list = ast.literal_eval(row)  # Convertir la lista de texto a una lista de Python
+            values = []
+            for item in data_list:
+                if 'corrective' in item:
+                    corrective = item.get('corrective', '')
+                    closedAt = get_nested_value(item, 'closedAt', '_seconds')
+                    createdAt = get_nested_value(item, 'createdAt', '_seconds')
+                    values.append({'corrective': corrective, 'closedAt_seconds': closedAt, 'createdAt_seconds': createdAt})
+            return values
         except Exception as e:
-            print("Error:", e)  # Imprimir el error para debug
+            print("Error:", e)
             return []
-
+    
     df = client.query(sql).to_dataframe()
     # Realiza transformaciones en el DataFrame
     df = df.reset_index(drop=True)
