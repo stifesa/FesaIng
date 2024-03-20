@@ -10,6 +10,7 @@ import datetime as dt
 from datetime import datetime, timedelta
 import pandas as pd
 import json
+import ast
 import os
 import io
 import gspread
@@ -150,7 +151,7 @@ def dsp_load_data(**kwargs):
         except Exception as e:
             print("Error:", e)
             return []
-    
+
     df = client.query(sql).to_dataframe()
     # Realiza transformaciones en el DataFrame
     df = df.reset_index(drop=True)
