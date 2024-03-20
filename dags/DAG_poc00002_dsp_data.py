@@ -190,6 +190,7 @@ def dsp_load_data(**kwargs):
     #quality['AccionCorrectiva'] = quality['AccionCorrectiva'].str.replace('[', '').str.replace(']', '')
     correctivos = quality[quality['AccionCorrectiva'].apply(lambda x: isinstance(x, str) and x != '[]' and x != 'nan')]
     print(correctivos.head())
+    print(quality.head(2))
     correctivos['json_values'] = correctivos['AccionCorrectiva'].apply(extract_json_values)
     new_rows = []
     for i, row in correctivos.iterrows():
