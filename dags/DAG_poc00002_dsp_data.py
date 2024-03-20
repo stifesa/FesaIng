@@ -136,30 +136,22 @@ def dsp_load_data(**kwargs):
                 return ''
         return temp
 
-    def extract_values(df, column_name):
-        # Función para extraer valores de un registro que puede ser un diccionario o una lista de diccionarios
-        def extract_from_record(record):
-            if isinstance(record, list):
-                # Si el registro es una lista, aplicar la extracción a cada elemento y combinar los resultados
-                return [extract_from_dict(item) for item in record if isinstance(item, dict)]
-            elif isinstance(record, dict):
-                # Si el registro es un diccionario, extraer los valores directamente
-                return extract_from_dict(record)
+    def extract_json_values(row):
+        try:
+            data = json.loads(row)  # Convertir el string JSON a un diccionario
+            if isinstance(data, list) and len(data) > 0:  # Verificar si es una lista no vacía
+                values = []
+                for item in data:
+                    if 'corrective' in item:
+                        corrective = item['corrective']
+                        closedAt = get_nested_value(item, 'closedAt', '_seconds')
+                        createdAt = get_nested_value(item, 'createdAt', '_seconds')
+                        values.append({'corrective': corrective, 'closedAt_seconds': closedAt, 'createdAt_seconds': createdAt})
+                return values
             else:
-                # Si el registro no es ni una lista ni un diccionario, retornar valores predeterminados
-                return ''
-
-        # Función para extraer valores de un diccionario individual
-        def extract_from_dict(d):
-            corrective = d.get('corrective', '')
-            closed_at_seconds = get_nested_value(d, 'closedAt', '_seconds')
-            created_at_seconds = get_nested_value(d, 'createdAt', '_seconds')
-            return corrective, created_at_seconds, closed_at_seconds
-
-        # Aplicar la función de extracción a la columna especificada y almacenar el resultado en una nueva columna
-        df['extracted_values'] = df[column_name].apply(extract_from_record)
-
-        return df
+                return []
+        except Exception as e:
+            return []
 
     df = client.query(sql).to_dataframe()
     # Realiza transformaciones en el DataFrame
@@ -198,9 +190,18 @@ def dsp_load_data(**kwargs):
     quality.reset_index(inplace=True, drop=True)
     # Remove square brackets from the 'col1' column
     #quality['AccionCorrectiva'] = quality['AccionCorrectiva'].str.replace('[', '').str.replace(']', '')
+    correctivos = quality
+    correctivos['json_values'] = correctivos['AccionCorrectiva'].apply(extract_json_values)
+    new_rows = []
+    for i, row in correctivos.iterrows():
+        for value in row['json_values']:
+            new_row = row.copy()
+            new_row.update(value)
+            new_rows.append(new_row)
 
-    correctivos = extract_values(quality, 'AccionCorrectiva')
-    print(correctivos[correctivos['id']=='DQfEqatZDaXEo4nmHoCP'].head())
+    # Crear un nuevo DataFrame con las filas divididas
+    new_df = pd.DataFrame(new_rows)
+    print(new_df.head())
     #correctivos[['corrective', 'created_at', 'closed_at']] = pd.DataFrame(correctivos['parsed_acciones'].tolist(), index=correctivos.index)
     #print(correctivos[['corrective']].head())
     quality = quality.astype(str)
