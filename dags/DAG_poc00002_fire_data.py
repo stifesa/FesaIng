@@ -53,7 +53,7 @@ def dsp_load_data(**kwargs):
 
     # Construye el servicio de Google Drive
     db = firestore.Client(credentials=credentials)
-    collection_path = 'ferreyros/quality'
+    collection_path = 'db/ferreyros/quality'
     docs = db.collection(collection_path).stream()
     data = []
     for doc in docs:
