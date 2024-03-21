@@ -30,8 +30,8 @@ project           = 'ferreyros-mvp'
 owner             = 'ALNETAHU'
 email             = ['astroboticapps@gmail.com']
 GBQ_CONNECTION_ID = 'bigquery_default'
-service_account_path = 'gs://st_raw/crdfesa/ferreyros-mvp-3cf04ce5fdcc.json'
-service_account_fire =  'gs://st_raw/crdfesa/ferreyros-mvp-3cf04ce5fdcc.json'
+#service_account_path = 'gs://st_raw/crdfesa/ferreyros-mvp-3cf04ce5fdcc.json'
+service_account_fire =  'gs://st_raw/crdfesa/ferreyros-mvp-9fc91ce58466.json'
 
 #######################################################################################
 
