@@ -30,7 +30,7 @@ project           = 'ferreyros-mvp'
 owner             = 'ALNETAHU'
 email             = ['astroboticapps@gmail.com']
 GBQ_CONNECTION_ID = 'bigquery_default'
-#service_account_path = 'gs://st_raw/crdfesa/ferreyros-mvp-3cf04ce5fdcc.json'
+service_account_path = 'gs://st_raw/crdfesa/ferreyros-mvp-3cf04ce5fdcc.json'
 service_account_fire =  'gs://st_raw/crdfesa/ferreyros-mvp-9fc91ce58466.json'
 
 #######################################################################################
@@ -50,6 +50,20 @@ def dsp_load_data(**kwargs):
         "https://www.googleapis.com/auth/cloud-platform",
         "https://www.googleapis.com/auth/datastore"]
     )
+
+    bucket_name2, blob_name2 = service_account_path.replace('gs://', '').split('/', 1)
+    bucket = storage_client.bucket(bucket_name2)
+    blob = bucket.blob(blob_name2)
+    service_account_content2 = blob.download_as_bytes()
+    # Carga las credenciales de la cuenta de servicio
+    credentials2 = service_account.Credentials.from_service_account_info(
+        json.loads(service_account_content2.decode('utf-8')),
+        scopes=['https://www.googleapis.com/auth/drive.readonly',
+        "https://www.googleapis.com/auth/cloud-platform",
+        "https://www.googleapis.com/auth/datastore"]
+    )
+
+    client = bigquery.Client(credentials=credentials2, project=project)
 
     # Construye el servicio de Google Drive
     db = firestore.Client(credentials=credentials)
@@ -74,8 +88,10 @@ def dsp_load_data(**kwargs):
     #"""
     #client.query(sqltrunc)
     # Carga el archivo CSV desde GCS a BigQuery
-    #load_job = client.load_table_from_dataframe(oportunidades, table_id)
-    #load_job.result()
+    DATASET_NAME = 'raw_st'
+    TABLE_NAME = 'dsp_acciones'
+    load_job = client.load_table_from_dataframe(df, table_id)
+    load_job.result()
 
 default_args = {
     'owner': owner,                   # The owner of the task.
