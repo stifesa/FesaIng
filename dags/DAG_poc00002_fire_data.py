@@ -25,7 +25,7 @@ import numpy as np
 #######################################################################################
 # PARAMETROS
 #######################################################################################
-nameDAG           = 'Carga_DSP_Data'
+nameDAG           = 'Carga_Fire_Data'
 project           = 'ferreyros-mvp'
 owner             = 'ALNETAHU'
 email             = ['astroboticapps@gmail.com']
