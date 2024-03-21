@@ -137,26 +137,6 @@ def dsp_load_data(**kwargs):
                 return ''
         return temp
 
-    def extract_json_values(row):
-        try:
-            data_list = ast.literal_eval(row)  # Convertir la lista de texto a una lista de Python
-            values = []
-            for item in data_list:
-                if 'corrective' in item:
-                    corrective = item.get('corrective', '')
-                    closedAt = get_nested_value(item, 'closedAt', '_seconds')
-                    createdAt = get_nested_value(item, 'createdAt', '_seconds')
-                    values.append({'corrective': corrective, 'closedAt_seconds': closedAt, 'createdAt_seconds': createdAt})
-            return values
-        except Exception as e:
-            print("Error:", e)
-            return []
-
-    def replace_quotes(value):
-        if isinstance(value, str):
-            return value.replace("'", '"')
-        else:
-            return value
 
     df = client.query(sql).to_dataframe()
     # Realiza transformaciones en el DataFrame
@@ -194,23 +174,8 @@ def dsp_load_data(**kwargs):
     quality.reset_index(inplace=True, drop=True)
     # Remove square brackets from the 'col1' column
     #quality['AccionCorrectiva'] = quality['AccionCorrectiva'].str.replace('[', '').str.replace(']', '')
-    quality['AccionCorrectiva'] = quality['AccionCorrectiva'].apply(replace_quotes)
-    print(type(quality.loc[0, 'AccionCorrectiva']))
-    print(quality['AccionCorrectiva'])
-    correctivos = quality[quality['AccionCorrectiva'].apply(lambda x: isinstance(x, str) and x != '[]' and x != 'nan')]
-    print(correctivos.head())
     print(quality.head(2))
-    correctivos['json_values'] = correctivos['AccionCorrectiva'].apply(extract_json_values)
-    new_rows = []
-    for i, row in correctivos.iterrows():
-        for value in row['json_values']:
-            new_row = row.copy()
-            new_row.update(value)
-            new_rows.append(new_row)
 
-    # Crear un nuevo DataFrame con las filas divididas
-    new_df = pd.DataFrame(new_rows)
-    print(new_df.head())
     #correctivos[['corrective', 'created_at', 'closed_at']] = pd.DataFrame(correctivos['parsed_acciones'].tolist(), index=correctivos.index)
     #print(correctivos[['corrective']].head())
     quality = quality.astype(str)
