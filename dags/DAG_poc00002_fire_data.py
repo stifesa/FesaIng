@@ -90,6 +90,7 @@ def dsp_load_data(**kwargs):
     # Carga el archivo CSV desde GCS a BigQuery
     DATASET_NAME = 'raw_st'
     TABLE_NAME = 'dsp_acciones'
+    table_id = f"{ }.{DATASET_NAME}.{TABLE_NAME}"
     load_job = client.load_table_from_dataframe(df, table_id)
     load_job.result()
 
