@@ -133,7 +133,7 @@ with DAG(nameDAG,
          default_args = default_args,
          catchup = False,  # Ver caso catchup = True
          max_active_runs = 3,
-         schedule_interval = "0 6 * * *") as dag: # schedule_interval = None # Caso sin trigger automático | schedule_interval = "0 12 * * *" | "0,2 12 * * *"
+         schedule_interval = "0 /12 * * *") as dag: # schedule_interval = None # Caso sin trigger automático | schedule_interval = "0 12 * * *" | "0,2 12 * * *"
 
     # FUENTE: CRONTRAB: https://crontab.guru/
     #############################################################
